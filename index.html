@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Bildwerkstatt · Offline</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#1b2938;background:#f4f6f8;font-size:15px}
+*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0}button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}
+.shell{max-width:1140px;padding:34px 22px 64px;margin:auto}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:22px;margin-bottom:22px;flex-wrap:wrap}
+h1{font-size:clamp(1.7rem,2.6vw,2.3rem);letter-spacing:-.04em;margin:.15rem 0 .4rem}h2{font-size:1.1rem;margin:0 0 15px}h3{font-size:1rem;margin:0 0 10px}p{line-height:1.5}.muted{color:#586879}.small{font-size:.86rem}.eyebrow{font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;color:#475b6f;font-weight:750}.pill{display:inline-flex;align-items:center;gap:7px;border:1px solid #d3dde6;border-radius:99px;padding:8px 12px;background:#fff;color:#345269;font-size:.83rem;font-weight:650}
+.layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(290px,.85fr);gap:18px}.panel{background:#fff;border:1px solid #dfe6ed;border-radius:15px;padding:24px;box-shadow:0 2px 14px rgba(25,40,60,.035);margin-bottom:18px;min-width:0}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:15px}.field label,.label{font-weight:650;font-size:.9rem}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 15px}.field input[type=number],.field input[type=text],.field select{width:100%;min-width:0;height:40px;padding:8px 10px;border:1px solid #becbd7;border-radius:7px;background:white;color:#182837}.field input[type=color]{width:57px;height:40px;padding:3px;border:1px solid #becbd7;border-radius:7px}.field input[type=range]{width:100%;accent-color:#155b92}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:3px solid #79b8ee;outline-offset:2px}.hint{font-size:.79rem;color:#627284;line-height:1.4}.check{display:flex;gap:10px;align-items:flex-start;font-size:.88rem;margin-top:4px}.check input{margin-top:3px;accent-color:#155b92}
+.btn{border:1px solid #c3d0db;background:#fff;border-radius:9px;padding:10px 15px;color:#15334b;font-weight:650;min-height:42px}.btn:hover:not(:disabled){background:#eaf2f8}.btn.primary{background:#175b91;border-color:#175b91;color:white}.btn.primary:hover:not(:disabled){background:#114976}.btn.subtle{border-color:transparent;background:#f1f5f8}.btn.danger{color:#9b2d31}.btn.sm{min-height:30px;padding:5px 8px;border-radius:6px;font-size:.81rem}
+.actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center}.drop{background:#f1f7fc;border:2px dashed #97b6d0;border-radius:11px;text-align:center;padding:28px 15px;margin-bottom:16px;transition:background .15s,border-color .15s}.drop.drag{background:#dbedf9;border-color:#1f6aa0}.drop strong{display:block;font-size:1.04rem}.drop span{display:block;margin-top:7px;font-size:.86rem;color:#567086}
+.info{border-radius:9px;padding:11px 13px;font-size:.87rem;line-height:1.45;background:#eef5fa;color:#2c4e69;margin:10px 0}.info.warn{background:#fff5e7;color:#79500b}.info.error{background:#ffefef;color:#922d36}.info.good{background:#edf8f1;color:#226840}.info:empty{display:none}
+summary{cursor:pointer;font-weight:700;padding:8px 0}details{border-top:1px solid #edf0f3;margin-top:10px;padding-top:8px}.separator{height:1px;background:#e5eaf0;margin:18px 0}
+/* Die Browserfunktionen öffnen sich als kompakte, animierte Karte neben dem Titel. */
+.header-side{display:flex;flex-direction:column;align-items:flex-end;gap:9px;flex-shrink:0}
+.status-dot{display:inline-block;width:9px;height:9px;flex:none;border-radius:50%;background:#278653;box-shadow:0 0 0 2px rgba(39,134,83,.09)}
+.status-dot.warn{background:#e19b26;box-shadow:0 0 0 2px rgba(225,155,38,.12)}
+.status-button{cursor:pointer;transition:border-color .18s,box-shadow .18s}
+.status-button:hover{border-color:#89abc4;box-shadow:0 2px 8px rgba(22,55,78,.09)}
+.status-button[aria-expanded=true]{border-color:#83aecb;box-shadow:0 0 0 2px #e8f3fa}
+.status-button .chevron{font-size:.83rem;color:#56718a;transform:rotate(0);transition:transform .23s ease}
+.status-button[aria-expanded=true] .chevron{transform:rotate(180deg)}
+.browser-wrap{position:relative;z-index:10}
+.browser-card{position:absolute;right:0;top:calc(100% + 9px);width:min(336px,calc(100vw - 32px));padding:17px 18px;background:#fff;border:1px solid #dfe6ed;border-radius:14px;box-shadow:0 14px 38px rgba(24,48,69,.18);visibility:hidden;opacity:0;transform:translateY(-10px) scale(.84);transform-origin:top right;pointer-events:none;transition:opacity .23s ease,transform .25s cubic-bezier(.2,.8,.2,1),visibility .25s}
+.browser-card.open{visibility:visible;opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+.browser-card h2{margin:0 0 11px;font-size:.94rem}
+.browsers{display:flex;flex-direction:column;gap:0}
+.cap{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid #eff2f5;font-size:.84rem;color:#30485c}
+.cap:last-child{border-bottom:0}
+.cap .status-dot{width:8px;height:8px}
+.cap-label{flex:1;min-width:0}
+.cap-state{font-size:.77rem;color:#23814e;white-space:nowrap}
+.cap.no .cap-state{color:#ae7117}
+.browser-card .info{font-size:.78rem;margin-top:9px}
+.preset-quality{color:#415e75;font-size:.84rem;line-height:1.35;font-weight:600;min-height:17px}
+@media(prefers-reduced-motion:reduce){.browser-card,.status-button,.status-button .chevron{transition:none}}
+
+.progress{width:100%;height:11px;accent-color:#175b91;margin:10px 0 3px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:9px}.stat{border:1px solid #e1e9ef;background:#f7f9fb;padding:13px;border-radius:10px}.stat strong{display:block;font-size:1.22rem;margin-top:4px;font-variant-numeric:tabular-nums}.stat span{color:#5c6d7d;font-size:.79rem}.stat.full{grid-column:1 / -1}.result-note{font-size:.81rem;color:#627284;line-height:1.4}
+.file-wrap{overflow-x:auto}.files{width:100%;border-collapse:collapse;font-size:.85rem}th{text-align:left;background:#f6f9fb;color:#556575;font-weight:700;font-size:.77rem}td,th{padding:11px 8px;border-bottom:1px solid #e9eef2;vertical-align:middle}td:first-child,th:first-child{padding-left:0}.file-name{font-weight:650;word-break:break-all}.file-sub{font-size:.77rem;color:#617485;margin-top:3px;word-break:break-all}.nowrap{white-space:nowrap}.td-actions{white-space:nowrap;text-align:right}.positive{color:#147244;font-weight:700}.negative{color:#ad5b1b;font-weight:700}.bad{color:#b32636}.file-status{white-space:normal;max-width:230px;word-break:break-word}.selected{background:#f2f8fd}.file-check{width:18px;height:18px;accent-color:#175b91;cursor:pointer}.check-cell{width:34px}.crop-mode{cursor:crosshair;touch-action:none}.preview-img{position:relative}.crop-outline{position:absolute;border:2px solid #fff;outline:1px solid #185b91;box-shadow:0 0 0 100vmax rgba(0,0,0,.31);pointer-events:none;z-index:2;display:none}.crop-outline.active{display:block}#originalPreview.crop-edit{border:3px solid #175b91;background:#e1f1fb;box-shadow:0 0 0 4px #d3e9fa,inset 0 0 0 2px #fff;cursor:crosshair}
+#originalPreview.crop-edit img{cursor:crosshair}
+#cropIndicator{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);z-index:3;background:#174d75;color:white;padding:6px 10px;border-radius:7px;font-size:.78rem;font-weight:700;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px #102b4080}
+.preview-img img{user-select:none;-webkit-user-drag:none}.help-tip{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border:1px solid #aec2d2;border-radius:50%;font-size:.75rem;color:#47677f;cursor:help;margin-left:5px;vertical-align:middle}.minihelp{font-size:.83rem;color:#536779}.minihelp summary{font-size:.81rem;font-weight:500;color:#536779}.minihelp p{margin:4px 0 0;font-size:.81rem}.crop-explain{margin-top:9px}
+.preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.preview-img{display:flex;align-items:center;justify-content:center;min-height:150px;height:225px;background:conic-gradient(#eef2f5 25%,#fff 0 50%,#eef2f5 0 75%,#fff 0) 0 0/22px 22px;border-radius:9px;overflow:hidden;border:1px solid #e2e8ec}.preview-img img{max-width:100%;max-height:100%;object-fit:contain}.preview-caption{color:#556575;font-size:.8rem;margin-bottom:6px}.preview-placeholder{color:#728292;text-align:center;font-size:.83rem;padding:15px}.preview-info{margin:13px 0 0;color:#536779;font-size:.85rem}
+.export{display:flex;gap:9px;flex-wrap:wrap;margin:13px 0}.export-note{color:#657484;font-size:.79rem}fieldset.settings{padding:0;margin:0;border:0;min-width:0}
+footer{color:#657482;font-size:.8rem;line-height:1.5;margin:12px 4px}#fileInput,#folderInput{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.shell{padding:24px 14px 50px}.panel{padding:19px}.preview-img{height:200px}}@media(max-width:500px){.grid2{grid-template-columns:1fr}.preview-grid{grid-template-columns:1fr}.preview-img{height:190px}.stats{grid-template-columns:1fr}.stat.full{grid-column:1}.td-actions{white-space:normal}}
+
+/* =========================================================
+   EnBW Bricks-Optik (ehemals bricks-layout.css)
+   ========================================================= */
+/* Design Tokens mit lokalen Fallbacks: funktioniert auch ohne Bricks-CSS-Datei. */
+:root {
+  color-scheme: light;
+
+  /* Schrift */
+  --bw-font-text:     var(--bricks-font-family-general, system-ui, sans-serif);
+  --bw-font-head:     var(--bricks-font-family-headlines, system-ui, sans-serif);
+  --bw-weight-head:   var(--bricks-font-weight-headlines, 500);
+  --bw-weight-medium: var(--bricks-font-weight-medium, 500);
+  --bw-size-body:     var(--bricks-font-size-body-m, 1rem);
+  --bw-size-small:    var(--bricks-font-size-body-s, .875rem);
+  --bw-size-label:    var(--bricks-font-size-label, .8125rem);
+  --bw-size-h1:       var(--bricks-font-size-heading-l, 1.75rem);
+  --bw-size-h2:       var(--bricks-font-size-heading-s, 1.25rem);
+
+  /* Flächen */
+  --bw-bg:            var(--bricks-color-background-body, #f9f7f5);
+  --bw-surface:       var(--bricks-color-background-container, #fff);
+  --bw-surface-alt:   var(--bricks-color-background-secondary, #f1eeeb);
+  --bw-hover:         var(--bricks-color-surface-hover, #eeebe8);
+
+  /* Text */
+  --bw-text:          var(--bricks-color-text-default, #141210);
+  --bw-text-muted:    var(--bricks-color-text-secondary, #5c5753);
+
+  /* Linien */
+  --bw-line:          var(--bricks-color-divider, #ddd8d3);
+  --bw-border:        var(--bricks-color-border, #8c8781);
+  --bw-border-hover:  var(--bricks-color-border-hover, #141210);
+  --bw-line-width:    var(--bricks-border-size-s, 1px);
+
+  /* Marke */
+  --bw-primary:       var(--bricks-color-primary-default, #000099);
+  --bw-primary-hover: var(--bricks-color-primary-hover, #0000cc);
+  --bw-on-primary:    var(--bricks-color-on-primary, #fff);
+
+  /* Status */
+  --bw-ok:            var(--bricks-color-confirmation, #2e7d32);
+  --bw-warn:          var(--bricks-color-alert, #ff8f0f);
+  --bw-error:         var(--bricks-color-error, #e20e00);
+  --bw-error-text:    var(--bricks-color-error-text, #b00b00);
+  --bw-info-bg:       var(--bricks-color-background-info, #eef3fb);
+  --bw-info-line:     var(--bricks-color-info-border, #b9cbe8);
+  --bw-warn-bg:       var(--bricks-color-background-warning, #fff4e5);
+  --bw-warn-line:     var(--bricks-color-warning-border, #f3c58a);
+
+  /* Rundungen und Schatten */
+  --bw-radius-sm:     var(--bricks-border-radius-base, 4px);
+  --bw-radius-md:     var(--bricks-border-radius-medium, 8px);
+  --bw-radius-card:   var(--bricks-border-radius-card, 12px);
+  --bw-radius-pill:   var(--bricks-border-radius-full, 999px);
+  --bw-shadow-pop:    var(--bricks-shadow-tooltip, 0 8px 24px rgb(0 0 0 / .16));
+
+  /* Fokusrahmen */
+  --bw-focus:         var(--bricks-focus-ring-color, #0000cc);
+  --bw-focus-width:   var(--bricks-focus-ring-width, 2px);
+  --bw-focus-gap:     var(--bricks-focus-ring-offset, 2px);
+
+  /* Bewegung */
+  --bw-speed:         var(--bricks-motion-duration-fast, .15s);
+  --bw-ease:          var(--bricks-motion-easing-standard, ease);
+
+  --bw-disabled-text:   var(--bricks-color-inactive, #9a948e);
+  --bw-disabled-bg:     var(--bricks-color-surface-disabled, #ece9e6);
+  --bw-disabled-border: var(--bricks-color-border-disabled, #d6d1cc);
+
+  --bw-outline-text:          var(--bricks-color-primary-default, var(--bw-primary));
+  --bw-outline-border:        var(--bricks-color-border-button, var(--bw-primary));
+  --bw-outline-border-press:  var(--bricks-color-border-button-pressed, var(--bw-primary));
+  --bw-outline-hover:         var(--bricks-color-surface-hover, #ebe8f3);
+  --bw-control-size-s:        var(--bricks-font-size-control-s, 0.875rem);
+  --bw-control-radius:        var(--bricks-border-radius-base, 4px);
+
+  --bw-outline-hover-bg:   var(--bricks-color-primary-hover, #0278d4);
+  --bw-outline-hover-text: var(--bricks-color-on-primary, #ffffff);
+  --bw-outline-active-bg:  var(--bricks-color-primary-active, #000099);
+}
+
+/* ---------- 2. Seite und Überschriften ---------- */
+body {
+  background: var(--bw-bg);
+  color: var(--bw-text);
+  font-family: var(--bw-font-text);
+  font-size: var(--bw-size-body);
+}
+h1, h2, h3 {
+  font-family: var(--bw-font-head);
+  font-weight: var(--bw-weight-head);
+  color: var(--bw-text);
+}
+h1 { font-size: var(--bw-size-h1); }
+.panel h2, .browser-card h2 { font-size: var(--bw-size-h2); }
+.eyebrow {
+  color: var(--bw-primary);
+  font-size: var(--bw-size-label);
+  font-weight: var(--bw-weight-medium);
+}
+.muted { color: var(--bw-text-muted); }
+.small { font-size: var(--bw-size-small); }
+
+/* ---------- 3. Panels im Stil einer Bricks-Card ---------- */
+.panel {
+  background: var(--bw-surface);
+  border: var(--bw-line-width) solid var(--bw-line);
+  border-radius: var(--bw-radius-card);
+  box-shadow: none;
+}
+
+/* ---------- 4. Kopfzeile: Status-Button und Statuskarte ---------- */
+.pill, .status-button {
+  background: var(--bw-surface);
+  color: var(--bw-text);
+  border: var(--bw-line-width) solid var(--bw-border);
+  border-radius: var(--bw-radius-pill);
+  font-family: inherit;
+}
+.status-button:hover {
+  background: var(--bw-hover);
+  border-color: var(--bw-border-hover);
+}
+.chevron { color: var(--bw-text-muted); }
+.browser-card {
+  background: var(--bw-surface);
+  border: var(--bw-line-width) solid var(--bw-line);
+  border-radius: var(--bw-radius-md);
+  box-shadow: var(--bw-shadow-pop);
+}
+.cap-state { color: var(--bw-text-muted); font-size: var(--bw-size-small); }
+.cap.ok .status-dot { background: var(--bw-ok); }
+.cap:not(.ok) .status-dot { background: var(--bw-warn); }
+
+/* ---------- 5. Hinweise ---------- */
+.info {
+  background: var(--bw-info-bg);
+  border: var(--bw-line-width) solid var(--bw-info-line);
+  border-radius: var(--bw-radius-sm);
+  color: var(--bw-text);
+}
+.info.warn {
+  background: var(--bw-warn-bg);
+  border-color: var(--bw-warn-line);
+}
+.info:empty { background: none; border-color: transparent; }
+
+/* ---------- 6. Ablagefläche ---------- */
+.drop {
+  background: var(--bw-surface-alt);
+  border-style: dashed;
+  border-color: var(--bw-border);
+  border-radius: var(--bw-radius-md);
+  color: var(--bw-text);
+}
+.drop:hover { border-color: var(--bw-primary); }
+.drop span { color: var(--bw-text-muted); }
+
+/* ---------- 7. Buttons: eine klare Hierarchie ---------- */
+.btn {
+  background: var(--bw-surface);
+  color: var(--bw-text);
+  border: var(--bw-line-width) solid var(--bw-border);
+  border-radius: var(--bw-radius-sm);
+  font-family: inherit;
+  font-weight: var(--bw-weight-medium);
+  transition: background-color var(--bw-speed) var(--bw-ease),
+              border-color var(--bw-speed) var(--bw-ease);
+}
+.btn:hover:not(:disabled) {
+  background: var(--bw-hover);
+  border-color: var(--bw-border-hover);
+}
+.btn.primary {
+  background: var(--bw-primary);
+  border-color: var(--bw-primary);
+  color: var(--bw-on-primary);
+}
+.btn.primary:hover:not(:disabled) {
+  background: var(--bw-primary-hover);
+  border-color: var(--bw-primary-hover);
+}
+.btn.danger {
+  background: var(--bw-surface);
+  border-color: var(--bw-error);
+  color: var(--bw-error-text);
+}
+.btn.danger:hover:not(:disabled) { background: var(--bw-hover); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* "Bild herunterladen" als Abschluss an den rechten Rand */
+#downloadOne { margin-inline-start: auto; }
+
+/* ---------- 8. Dateiliste ---------- */
+table.files th {
+  color: var(--bw-text-muted);
+  font-size: var(--bw-size-label);
+  font-weight: var(--bw-weight-medium);
+  text-align: start;
+  border-bottom: var(--bw-line-width) solid var(--bw-line);
+}
+table.files td { border-bottom: var(--bw-line-width) solid var(--bw-line); }
+table.files tbody tr:hover { background: var(--bw-hover); }
+.file-check, input[type=checkbox], input[type=radio], input[type=range] {
+  accent-color: var(--bw-primary);
+}
+
+/* ---------- 9. Vorschau: nur Beschriftungen, keine Maße ---------- */
+.preview-caption, .preview-info, .preview-placeholder { color: var(--bw-text-muted); }
+.hint { color: var(--bw-text-muted); font-size: var(--bw-size-small); }
+
+/* ---------- 10. Eingabefelder: nur Farbe, Rand und Schrift ---------- */
+.panel select,
+.panel input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]) {
+  background: var(--bw-surface);
+  color: var(--bw-text);
+  border: var(--bw-line-width) solid var(--bw-border);
+  border-radius: var(--bw-radius-sm);
+  font-family: inherit;
+}
+
+/* ---------- 11. Ausklappbare Hilfen und Fortschritt ---------- */
+details summary {
+  color: var(--bw-primary);
+  font-weight: var(--bw-weight-medium);
+  cursor: pointer;
+}
+progress { accent-color: var(--bw-primary); }
+
+/* ---------- 12. Fokusrahmen für Tastaturnutzung ---------- */
+.btn:focus-visible,
+.status-button:focus-visible,
+.drop:focus-visible,
+details summary:focus-visible,
+.panel select:focus-visible,
+.panel input:focus-visible {
+  outline: var(--bw-focus-width) solid var(--bw-focus);
+  outline-offset: var(--bw-focus-gap);
+}
+
+/* ---------- Deaktivierte Buttons ---------- */
+.btn.btn:disabled,
+.btn.btn:disabled:hover,
+.btn.btn:disabled:active {
+  opacity: 1;
+  background: var(--bw-disabled-bg);
+  color: var(--bw-disabled-text);
+  border-color: var(--bw-disabled-border);
+  box-shadow: none;
+  transform: none;
+  cursor: not-allowed;
+}
+
+/* ---------- 13. Weniger Bewegung, wenn gewünscht ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .btn { transition: none; }
+}
+
+
+/* ---------- Outline-Buttons: Aussehen, jede Größe ---------- */
+.btn.outline {
+  background: transparent;
+  color: var(--bw-outline-text);
+  border: var(--bricks-border-size-s, 1px) solid var(--bw-outline-border);
+  box-shadow: none;
+  transition:
+    background-color var(--bricks-motion-duration-fast, 150ms) var(--bricks-motion-easing-standard, ease),
+    border-color     var(--bricks-motion-duration-fast, 150ms) var(--bricks-motion-easing-standard, ease),
+    color            var(--bricks-motion-duration-fast, 150ms) var(--bricks-motion-easing-standard, ease);
+}
+
+.btn.outline:hover {
+  background: var(--bw-outline-hover-bg);
+  border-color: var(--bw-outline-hover-bg);
+  color: var(--bw-outline-hover-text);
+}
+
+.btn.outline:active {
+  background: var(--bw-outline-active-bg);
+  border-color: var(--bw-outline-active-bg);
+  color: var(--bw-outline-hover-text);
+}
+
+.btn.outline:focus-visible {
+  outline: var(--bw-focus-width) solid var(--bw-focus);
+  outline-offset: var(--bw-focus-gap);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn.outline { transition: none; }
+}
+
+/* ---------- Kompakte Größe, für jede Button-Variante ---------- */
+.btn.sm {
+  border-radius: var(--bw-control-radius);
+  font-size: var(--bw-control-size-s);
+  font-weight: var(--bricks-font-weight-medium, 500);
+  padding: var(--bricks-spacing-gap-xxsmall, 4px) var(--bricks-spacing-gap-small, 12px);
+  min-block-size: 1.5rem; /* mind. 24 px Klickfläche */
+}
+
+/* ---------- Footer: interne Autorenkennzeichnung ---------- */
+.app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 28px;
+  flex-wrap: wrap;
+  margin: 7px 0 0;
+  padding: 17px 4px 0;
+  border-top: var(--bw-line-width) solid var(--bw-line);
+  color: var(--bw-text-muted);
+  font-size: var(--bw-size-small);
+  line-height: 1.35;
+}
+.footer-author, .footer-contact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.footer-monogram {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  background: var(--bw-surface-alt);
+  color: var(--bw-primary);
+  font-size: .78rem;
+  font-weight: 750;
+  letter-spacing: -.03em;
+}
+.footer-identity { display: flex; flex-direction: column; gap: 2px; }
+.footer-kicker { font-size: .73rem; }
+.footer-identity strong { color: var(--bw-text); font-weight: 650; }
+.footer-contact { gap: 16px; flex-wrap: wrap; }
+.footer-contact a {
+  color: var(--bw-primary);
+  text-decoration: none;
+  text-underline-offset: 3px;
+}
+.footer-contact a:hover { text-decoration: underline; }
+.footer-contact a:focus-visible {
+  outline: var(--bw-focus-width) solid var(--bw-focus);
+  outline-offset: var(--bw-focus-gap);
+}
+.footer-unit {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: var(--bw-line-width) solid var(--bw-line);
+  border-radius: var(--bw-radius-pill);
+  background: var(--bw-surface);
+  color: var(--bw-text);
+  font-size: .76rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+@media (max-width: 500px) {
+  .app-footer { align-items: flex-start; }
+  .footer-contact { padding-left: 48px; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+<header class="top"><div><h1>Bildwerkstatt</h1><p class="muted" style="margin:0">Bilder verkleinern, bearbeiten und speichern – ohne Installation.</p></div>
+<div class="header-side"><div class="pill" title="Keine Uploads, Skripte oder Webdienste"><span class="status-dot" aria-hidden="true"></span> Offline · Dateien bleiben lokal</div>
+<div class="browser-wrap" id="browserWrap"><button type="button" class="pill status-button" id="browserToggle" aria-expanded="false" aria-controls="browserCard"><span class="status-dot" id="browserDot" aria-hidden="true"></span><span>Browserfunktionen</span><span class="chevron" aria-hidden="true">⌄</span></button>
+<div class="browser-card" id="browserCard" aria-label="Browserfunktionen" aria-hidden="true"><h2>Browserfunktionen</h2><div id="capabilities" class="browsers" role="list" aria-live="polite">Funktionen werden geprüft …</div><div id="browserNotice" class="info warn" role="status" hidden></div></div></div></div></header>
+
+<div class="layout">
+<main>
+<section class="panel"><h2>1. Bilder auswählen</h2><div id="dropzone" class="drop" aria-label="Dateien hier ablegen"><strong>Bilder hier ablegen</strong><span>oder unten auswählen</span></div><div class="actions"><button type="button" class="btn outline" id="addFiles">+ Bilder auswählen</button><button type="button" class="btn outline" id="addFolder">+ Ganzen Ordner auswählen</button></div><input id="fileInput" type="file" accept="image/*,.heic,.heif,.jfif,.bmp,.tif,.tiff" multiple><input id="folderInput" type="file" accept="image/*,.heic,.heif,.jfif,.bmp,.tif,.tiff" webkitdirectory multiple><details class="minihelp"><summary>Welche Formate werden unterstützt?</summary><p>JPG, PNG, WebP, GIF und BMP. HEIC/HEIF und TIFF nur, wenn der Browser sie öffnen kann. Animationen werden zu Einzelbildern.</p></details><div id="importNotice" class="info" role="status"></div></section>
+<section class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h2 style="margin:0">2. Dateiliste <span id="fileCount" class="muted small">(0)</span></h2><button type="button" class="btn sm danger" id="deleteChecked" disabled>Ausgewählte entfernen</button></div><div id="emptyList" class="muted" style="padding:24px 0 8px">Noch keine Bilder ausgewählt.</div><div id="fileTableWrap" class="file-wrap" hidden><table class="files"><thead><tr><th class="check-cell"><input id="checkAll" class="file-check" type="checkbox" aria-label="Alle Bilder auswählen" title="Alle Bilder auswählen"></th><th>Bild · Auflösung</th><th>Vorher</th><th>Nachher (geschätzt / fertig)</th><th class="td-actions">Bearbeiten</th></tr></thead><tbody id="fileRows"></tbody></table></div></section>
+<section class="panel" id="previewPanel" hidden><h2>Vorschau &amp; Bearbeiten</h2><div class="preview-grid"><div><div class="preview-caption" id="originalCaption">Original</div><div class="preview-img" id="originalPreview"><span class="preview-placeholder">Vorschau nicht verfügbar</span><span id="cropIndicator" hidden>✂ Hier Ausschnitt aufziehen</span></div></div><div><div class="preview-caption" id="previewResultCaption">Bearbeitungsvorschau</div><div class="preview-img" id="newPreview"><span class="preview-placeholder">Nach der Verarbeitung sichtbar</span></div></div></div><div id="previewMeta" class="preview-info"></div><div class="actions" style="margin-top:14px"><button type="button" class="btn sm outline" id="rotLeft">↶ 90° links</button><button type="button" class="btn sm outline" id="rotRight">↷ 90° rechts</button><button type="button" class="btn sm outline" id="flip">⇄ Spiegeln</button><button type="button" class="btn sm outline" id="startCrop" aria-pressed="false">✂ Ausschnitt wählen</button><button type="button" class="btn sm outline" id="resetCrop" disabled>Zuschnitt entfernen</button><button type="button" class="btn sm outline" id="resetTransform">Alles zurücksetzen</button><button type="button" class="btn sm primary" id="downloadOne" disabled>Bild herunterladen</button></div><p class="hint crop-explain" id="cropHelp" hidden>Im <strong>markierten Original links</strong> einen Ausschnitt mit der Maus aufziehen.</p></section>
+<section class="panel"><h2>3. Verarbeiten &amp; exportieren</h2><div class="actions"><button type="button" class="btn primary" id="process" disabled>Bilder verarbeiten</button><button type="button" class="btn danger" id="cancel" hidden>Abbrechen</button><span id="progressText" class="small muted" role="status" aria-live="polite">Bitte zuerst Bilder auswählen.</span></div><progress class="progress" id="progress" value="0" max="100" hidden></progress><div id="processNotice" class="info" role="status"></div><div id="exportArea" hidden><div class="separator"></div><h3>Ergebnisse speichern</h3><div class="export"><button type="button" class="btn primary" id="shareIos" hidden>Teilen / In Fotos sichern</button><button type="button" class="btn primary" id="downloadZip">Ergebnisse herunterladen</button><button type="button" class="btn outline" id="quickDownload" hidden>Ohne Dialog herunterladen</button><button type="button" class="btn outline" id="saveFolder">Mehrere Bilder direkt in Ordner speichern</button></div><p class="export-note" id="exportNote"></p><div class="info" id="folderHelp" hidden><strong>Ordnerfreigabe erforderlich</strong><p style="margin:7px 0">Chrome fragt einmal „Zulassen“, um Dateien im gewählten Ordner zu speichern. Wähle einen Unterordner (nicht „Downloads“ selbst). Bereits vorhandene Dateien werden nicht überschrieben. Es werden keine Bilder hochgeladen.</p><div class="actions"><button type="button" class="btn primary" id="confirmFolder">Ordner auswählen und freigeben</button><button type="button" class="btn" id="cancelFolder">Abbrechen</button></div></div></div></section>
+</main>
+<aside>
+<section class="panel"><h2>Einstellungen</h2><fieldset class="settings" id="settingsFieldset">
+<div class="field"><label for="preset">Voreinstellung</label><select id="preset"><option value="balanced">Ausgewogen (empfohlen)</option><option value="mail">Kleinere Dateien (z. B. E-Mail)</option><option value="presentation">Hohe Qualität (z. B. Präsentation)</option><option value="web">Platzsparend (WebP)</option><option value="high">Sehr hohe Bildqualität</option><option value="custom">Benutzerdefiniert</option></select><div id="presetQuality" class="preset-quality" role="status" aria-live="polite">Qualitätsstufe: 80 % (bei JPEG/WebP)</div></div>
+<div class="field"><label for="format">Ausgabeformat <span class="help-tip" id="formatHelp" tabindex="0" title="Originalformat oder gewünschtes Zielformat">?</span></label><select id="format"><option value="same">Eingabeformat beibehalten</option><option value="image/jpeg">JPEG · überall lesbar</option><option value="image/webp">WebP · oft kleiner</option><option value="image/png">PNG · verlustfrei</option></select></div>
+<div class="field" id="qualityRow" hidden><label for="quality">Bildqualität: <output id="qualityValue" for="quality">80 %</output></label><input id="quality" type="range" min="35" max="100" step="1" value="80"></div>
+<details id="advancedSettings"><summary>Weitere Optionen</summary><div style="padding-top:10px">
+<div class="field"><label for="resizeMode">Bildgröße <span class="help-tip" tabindex="0" title="Begrenzt die lange Seite bei Hoch- und Querformat. Das Seitenverhältnis bleibt erhalten; Bilder werden niemals vergrößert.">?</span></label><select id="resizeMode"><option value="none">Originalauflösung beibehalten</option><option value="edge">Längste Kante begrenzen</option></select></div>
+<div class="field" id="edgeRow" hidden><label for="maxEdge">Maximale Kantenlänge (Pixel)</label><input id="maxEdge" type="number" min="100" max="20000" step="100" value="1920"></div>
+
+<div class="field"><label for="targetKB">Dateigrößenziel (KB) <span class="help-tip" tabindex="0" title="Versucht, die gewünschte Dateigröße durch Qualitäts- und ggf. Auflösungsreduktion zu erreichen. Bei PNG nicht möglich, keine Garantie.">?</span></label><input type="number" id="targetKB" min="0" max="200000" step="50" value="0"><div class="hint">0 = kein Limit · keine Garantie</div></div>
+<div class="field"><label for="suffix">Dateinamen-Zusatz</label><input type="text" id="suffix" maxlength="55" value="_optimiert" placeholder="z. B. _klein"></div>
+<div class="field"><label for="bgColor">Hintergrund bei JPEG</label><input type="color" id="bgColor" value="#ffffff"></div>
+<details class="minihelp"><summary>Hinweise zur Neukomprimierung</summary><p>Schon optimierte Bilder können größer werden. Bei Neukodierung werden Metadaten üblicherweise entfernt.</p></details>
+</div></details></fieldset></section>
+<section class="panel"><h2>Übersicht <span class="help-tip" tabindex="0" title="Vor der Verarbeitung sind neue Dateigrößen nur grob geschätzt. Die exakten Größen erscheinen erst danach.">?</span></h2><div class="stats"><div class="stat"><span>Bilder in Liste</span><strong id="statCount">0</strong></div><div class="stat"><span>Verarbeitet</span><strong id="statDone">0</strong></div><div class="stat"><span>Originalgröße</span><strong id="statOriginal">0 MB</strong></div><div class="stat"><span>Ergebnisgröße</span><strong id="statResult">–</strong></div><div class="stat full"><span>Einsparung (verarbeitete Dateien)</span><strong id="statSaving">–</strong></div></div></section>
+<details class="panel minihelp" style="padding-top:12px;padding-bottom:12px"><summary>Datenschutz &amp; technische Grenzen</summary><p>Die Verarbeitung erfolgt ausschließlich im Browser, ohne Upload und ohne externe Bibliotheken. Sehr große Bildmengen können den Arbeitsspeicher belasten. Animationen und bestimmte Farbprofile können bei der Umwandlung verloren gehen.</p></details>
+</aside></div>
+<footer class="app-footer" aria-label="Kontakt zum Entwickler">
+  <div class="footer-author">
+  </div>
+  <div class="footer-contact">
+  </div>
+</footer>
+</div>
+<script>
+'use strict';
+(() => {
+const $ = id => document.getElementById(id);
+const MIMES = ['image/jpeg','image/webp','image/png'];
+const EXTS = {'image/jpeg':'.jpg','image/png':'.png','image/webp':'.webp'};
+const PRESETS = {
+ balanced:{format:'same',mode:'none',edge:1920,q:80,description:'Eingabeformat und Auflösung bleiben erhalten.'},
+ mail:{format:'image/jpeg',mode:'none',edge:1920,q:70,description:'JPEG mit Qualitätsstufe 70 %, Originalauflösung bleibt erhalten.'},
+ presentation:{format:'image/jpeg',mode:'none',edge:1920,q:86,description:'JPEG mit Qualitätsstufe 86 %, Originalauflösung bleibt erhalten.'},
+ web:{format:'image/webp',mode:'none',edge:1920,q:74,description:'WebP mit Qualitätsstufe 74 %, Originalauflösung bleibt erhalten.'},
+ high:{format:'same',mode:'none',edge:1920,q:90,description:'Eingabeformat und Auflösung bleiben erhalten.'}
+};
+const sizes = new Intl.NumberFormat('de-DE',{maximumFractionDigits:1});
+const pretty = b => b < 1024 ? `${b} B` : b < 1048576 ? `${sizes.format(b/1024)} KB` : `${sizes.format(b/1048576)} MB`;
+const difference = (a,b) => a ? `${sizes.format((a-b)/a*100)} %` : '–';
+const normalizeMime = f => {const m=(f.type||'').toLowerCase(); if(m==='image/jpg'||m==='image/pjpeg')return'image/jpeg';if(m)return m;const ext=f.name.split('.').pop().toLowerCase();return ({jpg:'image/jpeg',jpeg:'image/jpeg',jfif:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif',bmp:'image/bmp',heic:'image/heic',heif:'image/heif',tif:'image/tiff',tiff:'image/tiff'})[ext]||''};
+const allowedName = name => /\.(jpe?g|jfif|png|webp|gif|bmp|heic|heif|tiff?)$/i.test(name);
+const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const canShareFilesOnIOS = () => {
+ if (!isIOS() || typeof navigator.share !== 'function' || typeof navigator.canShare !== 'function') return false;
+ try { return navigator.canShare({ files: [new File([new Uint8Array(1)], 'probe.jpg', { type: 'image/jpeg' })] }); } catch { return false; }
+};
+const state={items:[],selected:null,next:1,busy:false,cancel:false,formats:new Set(['image/png']),previewUrls:[],rows:new Map(),workingMode:'',previewSeq:0,estimateSeq:0,estimateTimer:null,metaRunning:false,cropMode:false,cropDrag:null,iosShare:canShareFilesOnIOS()};
+const notice=(id,message,kind='')=>{const el=$(id);el.textContent=message;el.className='info'+(kind?' '+kind:'')};
+const addCap=(label,enabled,reason='')=>{const row=document.createElement('div');row.className='cap '+(enabled?'ok':'no');row.setAttribute('role','listitem');if(reason)row.title=reason;const dot=document.createElement('span');dot.className='status-dot'+(enabled?'':' warn');dot.setAttribute('aria-hidden','true');const name=document.createElement('span');name.className='cap-label';name.textContent=label;const status=document.createElement('span');status.className='cap-state';status.textContent=enabled?'Verfügbar':'Nicht verfügbar';row.append(dot,name,status);$('capabilities').append(row);return enabled};
+function setBrowserOpen(open){$('browserToggle').setAttribute('aria-expanded',String(open));$('browserCard').classList.toggle('open',open);$('browserCard').setAttribute('aria-hidden',String(!open))}
+$('browserToggle').addEventListener('click',()=>setBrowserOpen($('browserToggle').getAttribute('aria-expanded')!=='true'));
+document.addEventListener('pointerdown',e=>{if(!$('browserWrap').contains(e.target))setBrowserOpen(false)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('browserToggle').getAttribute('aria-expanded')==='true'){setBrowserOpen(false);$('browserToggle').focus()}});
+async function probeMime(mime){try{const c=document.createElement('canvas');c.width=2;c.height=2;return await new Promise(resolve=>c.toBlob(b=>resolve(!!b&&b.type===mime),mime,.8))}catch{return false}}
+async function capabilities(){
+ $('capabilities').replaceChildren();
+ const results=await Promise.all(['image/jpeg','image/webp'].map(probeMime));
+ ['image/jpeg','image/webp'].forEach((mime,i)=>{if(results[i])state.formats.add(mime);addCap(({ 'image/jpeg':'JPEG exportieren','image/webp':'WebP exportieren'})[mime],results[i],'Ausgabe-Encoder im Browser geprüft')});
+ addCap('PNG exportieren',true);
+ addCap('Speichern unter',typeof window.showSaveFilePicker==='function'&&window.isSecureContext,'Einzelbild mit System-Dateidialog speichern – keine generelle Ordnerfreigabe erforderlich');
+ const directory=typeof window.showDirectoryPicker==='function'&&window.isSecureContext;
+ addCap('In Ordner speichern',directory,'Dateisystem-Zugriff: ggf. durch Browserrichtlinien blockiert');
+ if(isIOS())addCap('Teilen / In Fotos sichern',state.iosShare,'iOS/iPadOS Teilen-Menü zum direkten Sichern in der Fotos-App');
+ const folder=('webkitdirectory' in $('folderInput'));addCap('Ordner einlesen',folder);
+ $('saveFolder').disabled=!directory;$('addFolder').disabled=!folder;
+ for(const mime of ['image/jpeg','image/webp']){const opt=[...$('format').options].find(o=>o.value===mime);if(opt&&!state.formats.has(mime))opt.disabled=true}
+ const issues=[];
+ if(!directory)issues.push('Direkter Ordnerexport nicht verfügbar – bitte ZIP-Download verwenden.');
+ if(!state.formats.has('image/jpeg'))issues.push('JPEG-Ausgabe in diesem Browser nicht verfügbar.');
+ if(!state.formats.has('image/webp'))issues.push('WebP-Ausgabe nicht verfügbar; JPEG oder PNG verwenden.');
+ const browserMessage=$('browserNotice');browserMessage.hidden=!issues.length;
+ if(issues.length)notice('browserNotice',issues.join(' '),'warn');
+ $('browserDot').classList.toggle('warn',issues.length>0||!directory||!folder||results.some(x=>!x)||typeof window.showSaveFilePicker!=='function');
+ if($('format').value!=='same'&&!state.formats.has($('format').value)){$('format').value='same';$('preset').value='custom';}
+ updateFormatHint();
+}
+function updateFormatHint(){const val=$('format').value;
+ $('qualityRow').hidden=$('preset').value!=='custom'||val==='image/png';
+ const explanation=val==='same'?'Eingabeformat beibehalten (z. B. JPG → JPG). Formate ohne Browser-Encoder (wie HEIC, TIFF, GIF, BMP) werden automatisch als JPEG gespeichert.':val==='image/png'?'PNG: verlustfrei, aber für Fotos oft größer.':val==='image/jpeg'?'JPEG: gut für Fotos, keine Transparenz.':'WebP: häufig kleiner, Transparenz möglich.';
+ $('formatHelp').title=explanation;$('format').title=explanation;
+ const p=PRESETS[$('preset').value];$('preset').title=p?p.description:'Qualität selbst einstellen.';
+ const q=$('quality').value;
+ $('presetQuality').textContent=val==='image/png'?'Qualitätsstufe: entfällt bei PNG (verlustfrei)':`Qualitätsstufe: ${q} %${val==='same'?' (bei JPEG/WebP)':''}`;
+}
+function onConfigChange(){if(state.busy)return;if($('preset').value!=='custom')$('preset').value='custom';invalidateOutputs();updateFormatHint();updateResizeUI();$('qualityValue').textContent=$('quality').value+' %'}
+function updateResizeUI(){$('edgeRow').hidden=$('resizeMode').value!=='edge'}
+function applyPreset(name){const p=PRESETS[name];if(!p)return;if(p.format!=='same'&&!state.formats.has(p.format)){notice('processNotice','Dieses Format wird von deinem Browser nicht unterstützt. Bitte anderes Format auswählen.','warn');$('preset').value='custom';updateFormatHint();return}
+ $('format').value=p.format;$('resizeMode').value=p.mode;$('maxEdge').value=p.edge;$('quality').value=p.q;$('qualityValue').textContent=p.q+' %';updateResizeUI();updateFormatHint();invalidateOutputs();}
+function getConfig(){const integer=(id,min,max)=>Math.max(min,Math.min(max,Number.parseInt($(id).value,10)||min));return {format:$('format').value,mode:$('resizeMode').value,edge:integer('maxEdge',100,20000),quality:integer('quality',35,100)/100,targetKB:integer('targetKB',0,200000),bg:$('bgColor').value,suffix:$('suffix').value.trim().replace(/[\\/:*?"<>|\x00-\x1f]/g,'_').slice(0,55)}}
+function invalidateOutputs(){$('folderHelp').hidden=true;const epoch=++state.estimateSeq;clearTimeout(state.estimateTimer);let changed=false;for(const item of state.items){item.estimate=null;if(item.result||item.status==='Fehler'||item.message){changed=true}item.status='Bereit';item.message='';item.result=null;item.outputName='';item.ow=0;item.oh=0;}
+ if(changed){notice('processNotice','Dateiauswahl oder Bearbeitung geändert. Vor dem Export bitte Bilder erneut verarbeiten.','warn');$('progressText').textContent='Änderungen vorgenommen – bitte erneut verarbeiten.';renderList();renderPreview();updateStats()}else for(const item of state.items)updateRow(item);scheduleEstimates(epoch)}
+function ingest(list,from='Auswahl'){
+ if(state.busy)return;let added=0,skipped=0;const existing=new Set(state.items.map(x=>[x.file.name,x.file.size,x.file.lastModified,x.file.webkitRelativePath||''].join('|')));
+ for(const file of Array.from(list||[])){const mime=normalizeMime(file);if(!mime.startsWith('image/')&&!allowedName(file.name)){skipped++;continue}if(mime==='image/svg+xml'||mime==='image/avif'||/\.(svg|avif)$/i.test(file.name)){skipped++;continue}
+ const key=[file.name,file.size,file.lastModified,file.webkitRelativePath||''].join('|');if(existing.has(key)){skipped++;continue}
+ existing.add(key);state.items.push({id:state.next++,file,rot:0,flip:false,crop:null,checked:false,metadataFailed:false,status:'Bereit',message:'',result:null,outputName:'',ow:0,oh:0,iw:0,ih:0,usedOriginal:false});added++}
+ if(added){if(state.selected===null)state.selected=state.items[0].id;invalidateOutputs();renderList();renderPreview();updateStats();loadDimensions();}
+ const total=state.items.reduce((s,x)=>s+x.file.size,0);const mass=total>512*1048576?' Größere Auswahl: mehr als 512 MB Rohdateien können viel Speicher benötigen.':'';const unsupported=state.items.some(x=>!state.formats.has(normalizeMime(x.file)));const fmtNote=unsupported&&$('format').value==='same'?' Formate wie HEIC, TIFF, GIF oder BMP werden automatisch als JPEG ausgegeben.':'';
+ notice('importNotice',added?`${added} Bild(er) aus ${from} hinzugefügt.${skipped?' '+skipped+' übersprungen (Duplikat oder nicht unterstützte Dateiendung).':''}${mass}${fmtNote}`:skipped?`${skipped} Datei(en) übersprungen (Duplikat oder kein unterstütztes Bild).`:'Keine passenden Bilddateien gefunden.',total>512*1048576?'warn':'');
+ $('fileInput').value='';$('folderInput').value='';
+}
+// Bildabmessungen unmittelbar nach dem Einlesen im Hintergrund bestimmen, ohne erst
+// den aufwendigen Komprimierungsvorgang starten zu müssen. Fehler bleiben pro Datei sichtbar.
+async function loadDimensions(){
+ if(state.metaRunning)return;
+ state.metaRunning=true;
+ try{
+  for(const item of state.items){
+   if(item.iw||item.metadataFailed)continue;
+   let decoded=null;
+   try{decoded=await loadImage(item.file);if(!decoded.width||!decoded.height)throw Error('Ungültige Abmessungen');item.iw=decoded.width;item.ih=decoded.height}
+   catch(e){item.metadataFailed=true}
+   finally{decoded?.close()}
+   if(state.items.includes(item)){updateRow(item);if(state.selected===item.id)updatePreviewInfo(item)}
+   await tick();
+  }
+ }finally{state.metaRunning=false}
+}
+function updateCheckAll(){const count=state.items.filter(x=>x.checked).length,all=$('checkAll');all.checked=state.items.length>0&&count===state.items.length;all.indeterminate=count>0&&count<state.items.length;$('deleteChecked').disabled=state.busy||count===0;$('deleteChecked').textContent=count?`Ausgewählte entfernen (${count})`:'Ausgewählte entfernen'}
+function removeItems(ids){
+ if(!ids.size||state.busy)return;
+ state.estimateSeq++;clearTimeout(state.estimateTimer);
+ state.items=state.items.filter(it=>!ids.has(it.id));
+ if(!state.items.some(it=>it.id===state.selected)){state.selected=state.items[0]?.id??null;state.cropMode=false;state.cropDrag=null}
+ renderList();renderPreview();updateStats();scheduleEstimates();
+ notice('importNotice',`${ids.size} Bild(er) entfernt.`, '');
+}
+function renderList(){const tbody=$('fileRows');tbody.replaceChildren();state.rows.clear();$('emptyList').hidden=state.items.length>0;$('fileTableWrap').hidden=!state.items.length;$('fileCount').textContent=`(${state.items.length})`;
+ for(const item of state.items){const row=document.createElement('tr');row.dataset.id=item.id;if(item.id===state.selected)row.classList.add('selected');const checkCell=document.createElement('td');checkCell.className='check-cell';const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.className='file-check';checkbox.checked=!!item.checked;checkbox.setAttribute('aria-label','Auswählen: '+item.file.name);checkCell.append(checkbox);
+ const nameCell=document.createElement('td');const name=document.createElement('div');name.className='file-name';name.textContent=item.file.name;const sub=document.createElement('div');sub.className='file-sub';sub.textContent='Auflösung wird ermittelt …';nameCell.append(name,sub);
+ const sizeCell=document.createElement('td');sizeCell.className='nowrap';sizeCell.textContent=pretty(item.file.size);
+ const statusCell=document.createElement('td');statusCell.className='file-status';
+ const actionCell=document.createElement('td');actionCell.className='td-actions';const select=document.createElement('button');select.type='button';select.className='btn sm';select.dataset.action='select';select.textContent='✎ Bearbeiten';select.title='Vorschau und Bild bearbeiten';select.setAttribute('aria-label','Vorschau und Bearbeiten: '+item.file.name);const del=document.createElement('button');del.type='button';del.className='btn sm danger';del.dataset.action='delete';del.textContent='×';del.title='Datei aus Liste entfernen';del.setAttribute('aria-label','Entfernen: '+item.file.name);del.style.marginLeft='5px';actionCell.append(select,del);row.append(checkCell,nameCell,sizeCell,statusCell,actionCell);tbody.append(row);state.rows.set(item.id,{row,statusCell,del,sub,checkbox});updateRow(item)}
+ updateCheckAll();controls();}
+function updateRow(item){const ref=state.rows.get(item.id);if(!ref)return;const {statusCell,row,del,sub,checkbox}=ref;sub.textContent=item.iw&&item.ih?`${item.iw} × ${item.ih} px${item.crop?' · Zuschnitt gesetzt':''}`:item.metadataFailed?'Auflösung nicht lesbar':'Auflösung wird ermittelt …';checkbox.checked=!!item.checked;statusCell.replaceChildren();const top=document.createElement('div');top.textContent=item.result?`${item.outputName} · ${pretty(item.result.size)}`:item.estimate!=null?`ca. ${pretty(item.estimate)} (geschätzt)`:item.status;top.className=item.status==='Fehler'?'bad':'';statusCell.append(top);if(item.result){const second=document.createElement('div');second.className='file-sub';const pct=item.file.size?`${sizes.format(Math.abs((item.file.size-item.result.size)/item.file.size*100))} %`:'–';second.textContent=`${item.ow} × ${item.oh} px · ${item.result.size===item.file.size?'':item.result.size<item.file.size?'−':'+'}${pct}${item.usedOriginal?' · Original übernommen':''}`;second.classList.add(item.result.size<=item.file.size?'positive':'negative');statusCell.append(second)}if(item.message){const msg=document.createElement('div');msg.className='file-sub';msg.textContent=item.message;statusCell.append(msg)}row.classList.toggle('selected',item.id===state.selected);del.disabled=state.busy}
+function controls(){const any=state.items.length>0;$('process').disabled=!any||state.busy;$('deleteChecked').disabled=state.busy||!state.items.some(x=>x.checked);$('addFiles').disabled=state.busy;$('addFolder').disabled=state.busy||!('webkitdirectory' in $('folderInput'));$('settingsFieldset').disabled=state.busy;$('cancel').hidden=!state.busy;$('progress').hidden=!state.busy;
+ const resultCount=state.items.filter(x=>!!x.result).length;const has=resultCount>0;$('exportArea').hidden=!has;
+ const showIosShare=state.iosShare&&has;
+ $('shareIos').hidden=!showIosShare;$('shareIos').disabled=state.busy||!showIosShare;
+ $('shareIos').textContent=resultCount===1?'Teilen / In Fotos sichern':`${resultCount} Bilder teilen / In Fotos sichern`;
+ $('downloadZip').className=showIosShare?'btn outline':'btn primary';
+ $('downloadZip').disabled=state.busy||!has;$('downloadZip').textContent=resultCount===1?'Bild speichern unter …':resultCount>1?`Alle ${resultCount} Bilder als ZIP herunterladen`:'Ergebnisse herunterladen';$('quickDownload').hidden=resultCount!==1||showIosShare;$('quickDownload').disabled=state.busy||!has;$('exportNote').textContent=showIosShare?'Tipp für iPad & iPhone: Über „Teilen / In Fotos sichern“ direkt in der Fotos-Mediathek speichern oder per AirDrop/Mail senden.':resultCount===1?'Einzeln speichern – ohne Ordnerfreigabe.':'ZIP-Download ohne Berechtigungsfrage.';$('saveFolder').textContent=resultCount===1?'In Ordner speichern (Freigabe nötig)':'Einzelbilder in Ordner speichern (Freigabe nötig)';$('saveFolder').disabled=state.busy||!has||typeof window.showDirectoryPicker!=='function'||!window.isSecureContext;$('confirmFolder').disabled=state.busy||!has;$('cancelFolder').disabled=state.busy;if(!has)$('folderHelp').hidden=true;$('downloadOne').disabled=state.busy||!state.items.some(x=>x.id===state.selected&&x.result);['rotLeft','rotRight','flip','resetTransform','startCrop'].forEach(id=>$(id).disabled=state.busy||state.selected===null);const sel=state.items.find(x=>x.id===state.selected);$('resetCrop').disabled=state.busy||!sel?.crop;$('startCrop').setAttribute('aria-pressed',String(state.cropMode));$('startCrop').textContent=state.cropMode?'✂ Zuschnitt abbrechen':'✂ Ausschnitt wählen';
+ const cropActive=state.cropMode&&!state.busy&&state.selected!==null;
+ $('originalPreview').classList.toggle('crop-mode',cropActive);$('originalPreview').classList.toggle('crop-edit',cropActive);
+ $('cropHelp').hidden=!cropActive;$('originalCaption').textContent=cropActive?'Original · Ausschnitt markieren':'Original';
+ const cropIndicator=$('cropIndicator');if(cropIndicator)cropIndicator.hidden=!cropActive;updateCheckAll();}
+function updateStats(){const all=state.items;const done=all.filter(x=>!!x.result);const orig=all.reduce((s,x)=>s+x.file.size,0);const processed=done.reduce((s,x)=>s+x.file.size,0);const result=done.reduce((s,x)=>s+x.result.size,0);
+ $('statCount').textContent=all.length;$('statDone').textContent=done.length;$('statOriginal').textContent=pretty(orig);$('statResult').textContent=done.length?pretty(result):'–';$('statSaving').textContent=done.length?`${difference(processed,result)} (${pretty(Math.abs(processed-result))} ${processed>=result?'weniger':'mehr'})`:'–';controls();}
+function releasePreview(){for(const u of state.previewUrls)URL.revokeObjectURL(u);state.previewUrls=[]}
+function showPicture(container,blob,text){container.replaceChildren();if(!blob){const sp=document.createElement('span');sp.className='preview-placeholder';sp.textContent=text;container.append(sp);return}const url=URL.createObjectURL(blob);state.previewUrls.push(url);const img=document.createElement('img');img.alt=text;img.draggable=false;img.src=url;img.onerror=()=>{if(img.isConnected){const sp=document.createElement('span');sp.className='preview-placeholder';sp.textContent='Vorschau für dieses Format nicht verfügbar';container.replaceChildren(sp)}};container.append(img)}
+function updatePreviewInfo(item){
+ if(!item||item.id!==state.selected)return;
+ const c=item.crop,orig=item.iw&&item.ih?` · Original: ${item.iw} × ${item.ih} px`:'';
+ const cut=c&&item.iw?` · Ausschnitt: ${Math.max(1,Math.round(c.w*item.iw))} × ${Math.max(1,Math.round(c.h*item.ih))} px`:'';
+ $('previewMeta').textContent=`${item.file.name} · ${pretty(item.file.size)}${orig}${cut} · Drehung: ${item.rot}°${item.flip?' · gespiegelt':''}`;
+}
+function cropPixels(item,w,h){
+ const c=item.crop;if(!c)return {sx:0,sy:0,w,h};
+ const sx=Math.min(w-1,Math.max(0,Math.floor(c.x*w))),sy=Math.min(h-1,Math.max(0,Math.floor(c.y*h)));
+ return {sx,sy,w:Math.max(1,Math.min(w-sx,Math.round(c.w*w))),h:Math.max(1,Math.min(h-sy,Math.round(c.h*h)))};
+}
+function drawCropOverlay(draft=null){
+ const img=$('originalPreview').querySelector('img'),box=$('originalPreview').querySelector('.crop-outline');
+ if(!img||!box||!img.complete||!img.naturalWidth)return;
+ const item=state.items.find(x=>x.id===state.selected),c=draft||item?.crop;
+ if(!c){box.classList.remove('active');return}
+ const ir=img.getBoundingClientRect(),pr=$('originalPreview').getBoundingClientRect();
+ if(!ir.width||!ir.height)return;
+ box.style.left=`${ir.left-pr.left+c.x*ir.width}px`;box.style.top=`${ir.top-pr.top+c.y*ir.height}px`;
+ box.style.width=`${c.w*ir.width}px`;box.style.height=`${c.h*ir.height}px`;box.classList.add('active');
+}
+function renderPreview(){
+ const seq=++state.previewSeq;releasePreview();const item=state.items.find(x=>x.id===state.selected);$('previewPanel').hidden=!item;
+ if(!item){controls();return}
+ showPicture($('originalPreview'),item.file,'Original: '+item.file.name);
+ const indicator=document.createElement('span');indicator.id='cropIndicator';indicator.textContent='✂ Hier Ausschnitt aufziehen';indicator.hidden=true;indicator.setAttribute('aria-hidden','true');$('originalPreview').append(indicator);
+ const img=$('originalPreview').querySelector('img');const overlay=document.createElement('div');overlay.className='crop-outline';overlay.setAttribute('aria-hidden','true');$('originalPreview').append(overlay);
+ if(img){img.addEventListener('load',()=>{if(seq===state.previewSeq)drawCropOverlay()});if(img.complete&&img.naturalWidth)requestAnimationFrame(()=>drawCropOverlay())}
+ $('previewResultCaption').textContent=item.result?'Verarbeitetes Ergebnis':'Bearbeitungsvorschau';
+ if(item.result){showPicture($('newPreview'),item.result,'Verarbeitet: '+item.file.name)}
+ else{
+  showPicture($('newPreview'),null,'Vorschau wird geladen …');
+  const rotation=item.rot,flipped=item.flip,file=item.file,crop=item.crop?{...item.crop}:null;
+  (async()=>{let decoded=null;try{
+   decoded=await loadImage(file);
+   const cropped=cropPixels({crop},decoded.width,decoded.height);
+   const sampleScale=Math.min(1,640/Math.max(cropped.w,cropped.h));
+   const w=Math.max(1,Math.round(cropped.w*sampleScale));const h=Math.max(1,Math.round(cropped.h*sampleScale));
+   const canvas=renderCanvas(decoded,w,h,{rot:rotation,flip:flipped,crop},'#ffffff','image/png');
+   const blob=await encode(canvas,'image/png',1);
+   if(seq!==state.previewSeq||state.selected!==item.id||item.result)return;
+   showPicture($('newPreview'),blob,'Bearbeitungsvorschau: '+file.name);
+  }catch(e){if(seq===state.previewSeq)showPicture($('newPreview'),null,'Vorschau nicht verfügbar: '+(e.message||e))}finally{decoded?.close()}})();
+ }
+ updatePreviewInfo(item);
+ for(const it of state.items){const r=state.rows.get(it.id);if(r)r.row.classList.toggle('selected',it.id===state.selected)}controls()
+}
+function cropPoint(event){
+ const img=$('originalPreview').querySelector('img');if(!img||!img.complete||!img.naturalWidth)return null;
+ const r=img.getBoundingClientRect();if(!r.width||!r.height)return null;
+ return {x:Math.max(0,Math.min(1,(event.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(event.clientY-r.top)/r.height))};
+}
+function cropRect(a,b){const x=Math.min(a.x,b.x),y=Math.min(a.y,b.y);return {x,y,w:Math.max(0,Math.abs(a.x-b.x)),h:Math.max(0,Math.abs(a.y-b.y))}}
+function chosenMime(file,config){if(config.format!=='same')return config.format;
+ const mime=normalizeMime(file);if(state.formats.has(mime))return mime;
+ if(state.formats.has('image/jpeg'))return 'image/jpeg';
+ if(state.formats.has('image/png'))return 'image/png';
+ throw Error(`Das Eingabeformat ${mime||'unbekannt'} kann hier nicht als Ausgabe geschrieben werden. Bitte JPEG, PNG oder WebP explizit auswählen.`)}
+function targetDimensions(w,h,rot,config){const turned=rot%180!==0;const visW=turned?h:w,visH=turned?w:h;let scale=1;if(config.mode==='edge')scale=Math.min(1,config.edge/Math.max(visW,visH));return {w:Math.max(1,Math.round(w*scale)),h:Math.max(1,Math.round(h*scale))}}
+async function loadImage(file){if(typeof createImageBitmap==='function'){try{const b=await createImageBitmap(file,{imageOrientation:'from-image'});return {src:b,width:b.width,height:b.height,close:()=>b.close()}}catch(e){try{const b=await createImageBitmap(file);return {src:b,width:b.width,height:b.height,close:()=>b.close()}}catch(_){/* Fallback */}}}
+ const url=URL.createObjectURL(file);return await new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve({src:img,width:img.naturalWidth,height:img.naturalHeight,close:()=>{img.src='';URL.revokeObjectURL(url)}});img.onerror=()=>{URL.revokeObjectURL(url);reject(Error('Bild kann im Browser nicht geöffnet werden. Format wird eventuell nicht unterstützt (z. B. HEIC).'))};img.src=url})}
+function canvasCreate(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d',{alpha:true});if(!ctx)throw Error('Canvas-Zeichenfläche nicht verfügbar');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';return [c,ctx]}
+function renderCanvas(img,w,h,item,bg,mime){const turned=item.rot%180!==0;const outW=turned?h:w,outH=turned?w:h;
+ if(outW*outH>70000000)throw Error('Bild zu groß für den Browser. Bitte kleinere maximale Kantenlänge wählen.');
+ let source=img.src,sw=img.width,sh=img.height;
+ if(item.crop){const r=cropPixels(item,sw,sh);const [cut,cx]=canvasCreate(r.w,r.h);cx.drawImage(source,r.sx,r.sy,r.w,r.h,0,0,r.w,r.h);source=cut;sw=r.w;sh=r.h}
+ while(sw>2*w||sh>2*h){const k=Math.max(.5,Math.max(w/sw,h/sh));const nw=Math.max(w,Math.ceil(sw*k)),nh=Math.max(h,Math.ceil(sh*k));if(nw===sw&&nh===sh)break;const [tmp,tx]=canvasCreate(nw,nh);tx.drawImage(source,0,0,nw,nh);source=tmp;sw=nw;sh=nh}
+ const [c,ctx]=canvasCreate(outW,outH);if(mime==='image/jpeg'){ctx.fillStyle=bg;ctx.fillRect(0,0,outW,outH)}ctx.save();ctx.translate(outW/2,outH/2);ctx.rotate(item.rot*Math.PI/180);ctx.scale(item.flip?-1:1,1);ctx.drawImage(source,-w/2,-h/2,w,h);ctx.restore();return c}
+function encode(canvas,mime,q){return new Promise((resolve,reject)=>{try{canvas.toBlob(blob=>{if(!blob)return reject(Error('Bild konnte nicht kodiert werden (zu groß oder nicht unterstützt).'));if(blob.type!==mime)return reject(Error(`Format ${mime.replace('image/','').toUpperCase()} kann dieser Browser nicht schreiben.`));resolve(blob)},mime,q)}catch(e){reject(e)}})}
+async function targetEncode(canvas,mime,quality,targetKB){let best=await encode(canvas,mime,quality);if(!targetKB||mime==='image/png'||best.size<=targetKB*1024)return {blob:best,canvas};
+ const target=targetKB*1024;
+ async function choose(c){let smallest=await encode(c,mime,quality);if(smallest.size<=target)return smallest;let low=.35,high=quality,matching=null;for(let i=0;i<6;i++){const q=(low+high)/2;const candidate=await encode(c,mime,q);if(candidate.size<smallest.size)smallest=candidate;if(candidate.size<=target){matching=candidate;low=q}else high=q}return matching||smallest}
+ best=await choose(canvas);if(best.size<=target)return {blob:best,canvas};
+ for(let i=0;i<5;i++){const w=Math.floor(canvas.width*.82),h=Math.floor(canvas.height*.82);if(Math.max(w,h)<300||!w||!h)break;const [reduced,ctx]=canvasCreate(w,h);ctx.drawImage(canvas,0,0,w,h);canvas=reduced;const trial=await choose(canvas);best=trial;if(best.size<=target)break}return {blob:best,canvas}}
+function uniqueName(file,mime,suffix,seen){let stem=file.name.replace(/\.[^/.]+$/,'').replace(/[\\/:*?"<>|\x00-\x1f]/g,'_').trim().replace(/[. ]+$/,'').slice(0,160)||'bild';let desired=stem+suffix;let ending=EXTS[mime];let name=desired+ending;let i=2;while(seen.has(name.toLowerCase()))name=`${desired}_${i++}${ending}`;seen.add(name.toLowerCase());return name}
+async function processItem(item,config,usedNames){let decoded=null;try{
+ const mime=chosenMime(item.file,config);if(!state.formats.has(mime))throw Error('Dieses Zielformat kann der Browser nicht exportieren.');
+ decoded=await loadImage(item.file);if(!decoded.width||!decoded.height)throw Error('Ungültige Bildabmessungen');item.iw=decoded.width;item.ih=decoded.height;
+ const crop=cropPixels(item,decoded.width,decoded.height);
+ const d=targetDimensions(crop.w,crop.h,item.rot,config);
+ const canvas=renderCanvas(decoded,d.w,d.h,item,config.bg,mime);const converted=await targetEncode(canvas,mime,config.quality,config.targetKB);
+ const untouched=d.w===decoded.width&&d.h===decoded.height&&item.rot===0&&!item.flip&&!item.crop;
+ const originalMime=normalizeMime(item.file);
+ item.result=converted.blob;item.usedOriginal=false;item.outputName=uniqueName(item.file,mime,config.suffix,usedNames);item.ow=converted.canvas.width;item.oh=converted.canvas.height;item.status='Fertig';const warnings=[];
+ if(config.format==='same'&&originalMime&&originalMime!==mime)warnings.push(`${originalMime.replace('image/','').toUpperCase()} automatisch in ${mime.replace('image/','').toUpperCase()} umgewandelt`);
+ if(/image\/(gif|webp)/.test(originalMime))warnings.push('Evtl. vorhandene Animationen wurden entfernt');
+ if(config.targetKB&&mime==='image/png')warnings.push('KB-Ziel gilt nicht für PNG');
+ else if(config.targetKB&&item.result.size>config.targetKB*1024)warnings.push('Gewünschte KB-Grenze nicht erreicht');
+ if(item.result.size>item.file.size)warnings.push('Ergebnis ist größer als das Original');
+ item.message=warnings.join(' · ');
+ }finally{if(decoded)decoded.close()}}
+// Eine kleine Bildprobe wird lokal neu kodiert. Das Ergebnis ist nur ein grober Richtwert.
+// Keine Berechnung anhand eines festen Prozentsatzes der Original-Dateigröße.
+function scheduleEstimates(epoch=state.estimateSeq){
+ if(!state.items.length||state.busy)return;
+ clearTimeout(state.estimateTimer);
+ state.estimateTimer=setTimeout(()=>{calculateEstimates(epoch).catch(e=>notice('importNotice','Dateigrößen-Vorschau nicht verfügbar: '+(e.message||e),'warn'))},250);
+}
+async function estimateItem(item,config){let decoded=null;try{
+ decoded=await loadImage(item.file);
+ item.iw=decoded.width;item.ih=decoded.height;updateRow(item);
+ const mime=chosenMime(item.file,config);
+ const crop=cropPixels(item,decoded.width,decoded.height);
+ const d=targetDimensions(crop.w,crop.h,item.rot,config);
+ const fullW=item.rot%180!==0?d.h:d.w,fullH=item.rot%180!==0?d.w:d.h;
+ const scale=Math.min(1,900/Math.max(fullW,fullH));
+ const thumbW=Math.max(1,Math.round(d.w*scale)),thumbH=Math.max(1,Math.round(d.h*scale));
+ const canvas=renderCanvas(decoded,thumbW,thumbH,item,config.bg,mime);
+ const sample=await encode(canvas,mime,config.quality);
+ const factor=(fullW*fullH)/(canvas.width*canvas.height);
+ let approx=Math.round(sample.size*Math.pow(factor,0.9));
+ return approx;
+ }finally{decoded?.close()}}
+async function calculateEstimates(epoch){
+ if(epoch!==state.estimateSeq||state.busy)return;
+ const config=getConfig();
+ for(const item of state.items){
+  if(state.busy||epoch!==state.estimateSeq)return;
+  if(item.result||item.estimate!=null)continue;
+  try{const approx=await estimateItem(item,config);if(epoch===state.estimateSeq&&!state.busy){item.estimate=approx;updateRow(item)}}
+  catch(e){if(epoch===state.estimateSeq){item.estimate=null;item.estimateError=true;updateRow(item)}}
+  await tick();
+ }
+}
+function tick(){return new Promise(resolve=>setTimeout(resolve,0))}
+async function runProcessing(){if(state.busy||!state.items.length)return;state.estimateSeq++;clearTimeout(state.estimateTimer);state.busy=true;state.cancel=false;state.workingMode='processing';const config=getConfig();const names=new Set();for(const item of state.items){item.result=null;item.status='Wartet';item.message='';item.outputName='';item.usedOriginal=false}renderList();renderPreview();updateStats();$('progress').value=0;$('progress').hidden=false;let done=0,failed=0;
+ try{for(const item of state.items){if(state.cancel)break;item.status='Verarbeitung läuft …';updateRow(item);$('progressText').textContent=`Bild ${done+failed+1} von ${state.items.length}: ${item.file.name}`;await tick();try{await processItem(item,config,names);done++}catch(e){failed++;item.status='Fehler';item.message=(e&&e.message)||String(e);item.result=null}updateRow(item);$('progress').value=100*(done+failed)/state.items.length;updateStats();if(item.id===state.selected)renderPreview();await tick()}}
+ finally{state.busy=false;state.workingMode='';$('progressText').textContent=state.cancel?`Abgebrochen · ${done} verarbeitet, ${failed} Fehler`:`${done} erfolgreich verarbeitet${failed?', '+failed+' Fehler':''}.`;
+ notice('processNotice',state.cancel?'Vorgang abgebrochen. Bereits erstellte Ergebnisse können gespeichert werden.':failed?'Einige Bilder konnten nicht verarbeitet werden. Die Fehler stehen in der Dateiliste.':'Fertig! Ergebnisse jetzt als ZIP herunterladen oder in einen Zielordner speichern.',failed?'warn':'good');controls();renderList();renderPreview();updateStats()}}
+function downloadBlob(blob,name){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)}
+// ZIP-Container im STORE-Modus (ohne erneute Kompression bereits komprimierter Bilder).
+// Alle CRC32-Checksummen werden im Browser aus Datenströmen berechnet; keine Fremdbibliothek.
+const crcTable=(()=>{const table=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?(0xedb88320^(c>>>1)):(c>>>1);table[n]=c>>>0}return table})();
+async function crc32(blob){let c=0xffffffff;if(typeof blob.stream==='function'){const reader=blob.stream().getReader();try{while(true){if(state.cancel)throw Error('Export abgebrochen');const {done,value}=await reader.read();if(done)break;for(let i=0;i<value.length;i++)c=crcTable[(c^value[i])&255]^(c>>>8)}}finally{reader.releaseLock()}}else{const buffer=new Uint8Array(await blob.arrayBuffer());for(let i=0;i<buffer.length;i++)c=crcTable[(c^buffer[i])&255]^(c>>>8)}return(c^0xffffffff)>>>0}
+function zipTimes(date){const year=Math.max(1980,date.getFullYear());return {date:((year-1980)<<9)|((date.getMonth()+1)<<5)|date.getDate(),time:(date.getHours()<<11)|(date.getMinutes()<<5)|(date.getSeconds()>>1)}}
+function zipLocal(name,crc,size,dt){const buf=new ArrayBuffer(30+name.length),v=new DataView(buf);v.setUint32(0,0x04034b50,true);v.setUint16(4,20,true);v.setUint16(6,0x0800,true);v.setUint16(8,0,true);v.setUint16(10,dt.time,true);v.setUint16(12,dt.date,true);v.setUint32(14,crc,true);v.setUint32(18,size,true);v.setUint32(22,size,true);v.setUint16(26,name.length,true);new Uint8Array(buf,30).set(name);return buf}
+function zipCentral(name,crc,size,offset,dt){const buf=new ArrayBuffer(46+name.length),v=new DataView(buf);v.setUint32(0,0x02014b50,true);v.setUint16(4,20,true);v.setUint16(6,20,true);v.setUint16(8,0x0800,true);v.setUint16(10,0,true);v.setUint16(12,dt.time,true);v.setUint16(14,dt.date,true);v.setUint32(16,crc,true);v.setUint32(20,size,true);v.setUint32(24,size,true);v.setUint16(28,name.length,true);v.setUint32(42,offset,true);new Uint8Array(buf,46).set(name);return buf}
+async function makeZip(items){if(items.length>65535)throw Error('ZIP unterstützt maximal 65.535 Einträge.');const encoder=new TextEncoder();const pieces=[],central=[];let offset=0;const dt=zipTimes(new Date());
+ for(let i=0;i<items.length;i++){if(state.cancel)throw Error('Export abgebrochen');const item=items[i],name=encoder.encode(item.outputName),blob=item.result;if(name.length>65535||blob.size>0xffffffff)throw Error('Ein Bild ist für dieses ZIP-Format zu groß.');const sum=await crc32(blob);const local=zipLocal(name,sum,blob.size,dt);if(offset+local.byteLength+blob.size>0xffffffff)throw Error('ZIP größer als 4 GB – bitte in kleinere Pakete aufteilen.');central.push(zipCentral(name,sum,blob.size,offset,dt));pieces.push(local,blob);offset+=local.byteLength+blob.size;$('progressText').textContent=`ZIP wird erstellt: ${i+1}/${items.length}`;$('progress').value=100*(i+1)/items.length;await tick()}
+ let centralSize=0;for(const entry of central)centralSize+=entry.byteLength;if(offset+centralSize+22>0xffffffff)throw Error('ZIP größer als 4 GB – bitte in kleinere Pakete aufteilen.');for(const entry of central)pieces.push(entry);const end=new ArrayBuffer(22),v=new DataView(end);v.setUint32(0,0x06054b50,true);v.setUint16(8,items.length,true);v.setUint16(10,items.length,true);v.setUint32(12,centralSize,true);v.setUint32(16,offset,true);pieces.push(end);return new Blob(pieces,{type:'application/zip'})}
+async function saveSingle(item){
+ if(!item?.result||state.busy)return;
+ if(typeof window.showSaveFilePicker!=='function'||!window.isSecureContext){
+  downloadBlob(item.result,item.outputName);
+  notice('processNotice','Dieser Browser unterstützt den normalen Speichern-Dialog hier nicht. Das Bild wurde stattdessen zum Browser-Download übergeben.','warn');return;
+ }
+ try{
+  // Wichtig: Dateidialog ohne vorheriges await aus dem Benutzerklick öffnen.
+  const mime=item.result.type||'image/jpeg';
+  const ext=EXTS[mime]||'.jpg';
+  const fileHandle=await window.showSaveFilePicker({suggestedName:item.outputName,types:[{description:'Bilddatei',accept:{[mime]:[ext]}}]});
+  const writer=await fileHandle.createWritable();
+  try{await writer.write(item.result);await writer.close()}catch(e){try{await writer.abort()}catch(_){}throw e}
+  notice('processNotice',`Bild als „${fileHandle.name||item.outputName}“ gespeichert. Kein Zugriff auf einen gesamten Ordner erforderlich.`,'good');
+ }catch(e){
+  if(e.name==='AbortError')notice('processNotice','Speichern abgebrochen. Du kannst erneut „Bild speichern unter …“ wählen oder das Bild direkt herunterladen.','');
+  else notice('processNotice','Speichern unter nicht möglich: '+e.message+'. Alternative: „Ohne Dialog herunterladen“ wählen.','warn');
+ }
+}
+async function shareOnIos(){
+ const items=state.items.filter(x=>x.result);
+ if(!items.length||state.busy||!state.iosShare)return;
+ try{
+  const files=items.map(it=>new File([it.result],it.outputName,{type:it.result.type||'image/jpeg',lastModified:Date.now()}));
+  if(navigator.canShare&&!navigator.canShare({files})){
+   notice('processNotice','Direktes Teilen dieser Bildmenge wird von iOS blockiert. Bitte den ZIP-Download nutzen.','warn');
+   return;
+  }
+  await navigator.share({files,title:files.length===1?files[0].name:`${files.length} optimierte Bilder`});
+  notice('processNotice',`${files.length===1?'Bild':'Bilder'} an das iOS/iPadOS-Teilen-Menü übergeben.`,'good');
+ }catch(e){
+  if(e&&e.name==='AbortError')return;
+  notice('processNotice','Teilen auf iPad/iPhone nicht möglich: '+(e.message||e)+'. Bitte stattdessen den Download-Button nutzen.','warn');
+ }
+}
+async function runZip(){const items=state.items.filter(x=>x.result);if(!items.length||state.busy)return;if(items.length===1){await saveSingle(items[0]);return;}state.busy=true;state.workingMode='zip';state.cancel=false;controls();$('progress').value=0;try{const blob=await makeZip(items);if(!state.cancel){downloadBlob(blob,'Bilder_optimiert.zip');notice('processNotice',`${items.length} Bilder wurden als ZIP zum Download übergeben (${pretty(blob.size)}).`,'good')}}catch(e){notice('processNotice',e.message,'error')}finally{state.busy=false;state.workingMode='';$('progressText').textContent='ZIP-Export beendet';controls()}}
+async function nameExists(handle,name){try{await handle.getFileHandle(name,{create:false});return true}catch(e){if(e&&e.name==='NotFoundError')return false;throw e}}
+async function availableName(handle,name){const match=name.match(/^(.*?)(\.[^.]*)?$/);const base=match[1],ext=match[2]||'';for(let i=1;i<=10000;i++){const candidate=i===1?name:`${base}_${i}${ext}`;if(!await nameExists(handle,candidate))return candidate}throw Error('Zu viele Namenskonflikte im Zielordner')}
+async function saveToFolder(){if(state.busy||typeof window.showDirectoryPicker!=='function')return;let handle;try{handle=await window.showDirectoryPicker({mode:'readwrite',startIn:'documents'})}catch(e){notice('processNotice',(e.name==='AbortError'?'Ordnerauswahl abgebrochen oder Ordner durch Chrome gesperrt. ':'Ordnerzugriff nicht möglich: '+e.message+'. ')+'Tipp: Unterordner wie Downloads\\Bilder_optimiert statt des Downloads-Ordners selbst wählen. Alternativ den blauen Download-Button verwenden.','warn');return}
+ const items=state.items.filter(x=>x.result);state.busy=true;state.cancel=false;state.workingMode='folder';controls();let ok=0,errors=0;try{for(let i=0;i<items.length;i++){if(state.cancel)break;const item=items[i];try{const name=await availableName(handle,item.outputName);const output=await handle.getFileHandle(name,{create:true});const stream=await output.createWritable();try{await stream.write(item.result);await stream.close()}catch(e){try{await stream.abort()}catch(_){}throw e}ok++}catch(e){errors++;item.message+=(item.message?' · ':'')+'Speichern fehlgeschlagen: '+e.message;updateRow(item)}$('progressText').textContent=`Ordnerexport: ${i+1}/${items.length}`;$('progress').value=100*(i+1)/items.length;await tick()}
+ notice('processNotice',`${ok} Bild(er) im Ordner gespeichert${errors?', '+errors+' Fehler':''}${state.cancel?' (abgebrochen)':''}. Vorhandene Dateien wurden nicht überschrieben.`,errors?'warn':'good')}finally{state.busy=false;state.workingMode='';$('progressText').textContent='Ordnerexport beendet';controls()}}
+function selectedTransform(action){const item=state.items.find(x=>x.id===state.selected);if(!item||state.busy)return;if(action==='left')item.rot=(item.rot+270)%360;if(action==='right')item.rot=(item.rot+90)%360;if(action==='flip')item.flip=!item.flip;if(action==='reset'){item.rot=0;item.flip=false;item.crop=null;state.cropMode=false}invalidateOutputs();renderPreview();}
+function commitCrop(c){const item=state.items.find(x=>x.id===state.selected);if(!item||state.busy)return;item.crop=c;invalidateOutputs();renderList();renderPreview();updateStats()}
+
+$('addFiles').addEventListener('click',()=>$('fileInput').click());$('fileInput').addEventListener('change',e=>ingest(e.target.files,'Dateiauswahl'));
+$('addFolder').addEventListener('click',()=>$('folderInput').click());$('folderInput').addEventListener('change',e=>ingest(e.target.files,'Ordner'));
+// Browser-interne Bildvorschauen dürfen nicht als neue Bilddateien gezogen werden.
+for(const id of ['originalPreview','newPreview'])$(id).addEventListener('dragstart',e=>e.preventDefault());
+const isFileDrag=e=>!!e.dataTransfer&&Array.from(e.dataTransfer.types||[]).includes('Files');
+window.addEventListener('dragover',e=>{if(isFileDrag(e))e.preventDefault()});
+window.addEventListener('drop',e=>{if(isFileDrag(e)||e.dataTransfer?.files?.length)e.preventDefault()});
+$('dropzone').addEventListener('dragenter',e=>{if(!isFileDrag(e))return;e.preventDefault();$('dropzone').classList.add('drag')});
+$('dropzone').addEventListener('dragover',e=>{if(!isFileDrag(e))return;e.preventDefault();e.dataTransfer.dropEffect='copy';$('dropzone').classList.add('drag')});
+$('dropzone').addEventListener('dragleave',e=>{if(!e.currentTarget.contains(e.relatedTarget))$('dropzone').classList.remove('drag')});
+$('dropzone').addEventListener('drop',e=>{if(!isFileDrag(e)&&!e.dataTransfer?.files?.length)return;e.preventDefault();e.stopPropagation();$('dropzone').classList.remove('drag');ingest(e.dataTransfer.files,'Drag & Drop')});
+document.addEventListener('paste',e=>{if(state.busy||['INPUT','TEXTAREA'].includes(document.activeElement?.tagName))return;const files=[...e.clipboardData?.items||[]].filter(i=>i.kind==='file').map(i=>i.getAsFile()).filter(Boolean);if(files.length){e.preventDefault();ingest(files,'Zwischenablage')}});
+$('checkAll').addEventListener('change',e=>{if(state.busy)return;for(const item of state.items)item.checked=e.target.checked;updateCheckAll();for(const item of state.items)updateRow(item)});
+$('deleteChecked').addEventListener('click',()=>removeItems(new Set(state.items.filter(x=>x.checked).map(x=>x.id))));
+$('fileRows').addEventListener('change',e=>{if(state.busy||!e.target.matches('input.file-check'))return;const row=e.target.closest('tr');const item=state.items.find(x=>x.id===Number(row?.dataset.id));if(item){item.checked=e.target.checked;updateCheckAll()}});
+$('fileRows').addEventListener('click',e=>{const btn=e.target.closest('button[data-action]');if(!btn||state.busy)return;const row=btn.closest('tr');const id=Number(row?.dataset.id);if(btn.dataset.action==='delete'){removeItems(new Set([id]))}else{state.selected=id;state.cropDrag=null;renderPreview();$('previewPanel').scrollIntoView({behavior:'smooth',block:'start'})}});
+$('preset').addEventListener('change',()=>{if($('preset').value!=='custom')applyPreset($('preset').value);else updateFormatHint()});
+['format','resizeMode','maxEdge','quality','targetKB','suffix','bgColor'].forEach(id=>$(id).addEventListener(id==='quality'?'input':'change',onConfigChange));
+$('rotLeft').addEventListener('click',()=>selectedTransform('left'));$('rotRight').addEventListener('click',()=>selectedTransform('right'));$('flip').addEventListener('click',()=>selectedTransform('flip'));$('resetTransform').addEventListener('click',()=>selectedTransform('reset'));
+$('startCrop').addEventListener('click',()=>{if(state.busy)return;state.cropMode=!state.cropMode;controls()});
+$('resetCrop').addEventListener('click',()=>commitCrop(null));
+$('originalPreview').addEventListener('pointerdown',e=>{
+ if(!state.cropMode||state.busy||e.button!==0)return;
+ const pt=cropPoint(e);if(!pt)return;
+ e.preventDefault();state.cropDrag={pointerId:e.pointerId,start:pt,current:pt,itemId:state.selected};$('originalPreview').setPointerCapture(e.pointerId);drawCropOverlay({x:pt.x,y:pt.y,w:0,h:0});
+});
+$('originalPreview').addEventListener('pointermove',e=>{
+ const drag=state.cropDrag;if(!drag||e.pointerId!==drag.pointerId)return;
+ const pt=cropPoint(e);if(!pt)return;drag.current=pt;drawCropOverlay(cropRect(drag.start,pt));
+});
+function finishCrop(e,cancelled=false){const drag=state.cropDrag;if(!drag||e.pointerId!==drag.pointerId)return;state.cropDrag=null;
+ try{if($('originalPreview').hasPointerCapture(e.pointerId))$('originalPreview').releasePointerCapture(e.pointerId)}catch(_){}
+ const c=cropRect(drag.start,drag.current);
+ if(!cancelled&&drag.itemId===state.selected&&c.w>=.015&&c.h>=.015){state.cropMode=false;commitCrop(c)}else drawCropOverlay();
+}
+$('originalPreview').addEventListener('pointerup',e=>finishCrop(e));$('originalPreview').addEventListener('pointercancel',e=>finishCrop(e,true));window.addEventListener('resize',()=>drawCropOverlay());
+$('downloadOne').addEventListener('click',()=>{const item=state.items.find(x=>x.id===state.selected);if(item?.result)downloadBlob(item.result,item.outputName)});
+$('process').addEventListener('click',runProcessing);$('cancel').addEventListener('click',()=>{state.cancel=true;notice('processNotice',state.workingMode==='processing'?'Abbruch angefordert. Das gerade bearbeitete Bild wird noch abgeschlossen.':'Abbruch angefordert. Der aktuelle Speicherschritt wird noch abgeschlossen.','warn')});$('shareIos').addEventListener('click',shareOnIos);$('downloadZip').addEventListener('click',runZip);$('quickDownload').addEventListener('click',()=>{const item=state.items.find(x=>x.result);if(item){downloadBlob(item.result,item.outputName);notice('processNotice','Bild zum normalen Browser-Download übergeben.','good')}});$('saveFolder').addEventListener('click',()=>{$('folderHelp').hidden=!$('folderHelp').hidden;});$('confirmFolder').addEventListener('click',()=>{$('folderHelp').hidden=true;saveToFolder()});$('cancelFolder').addEventListener('click',()=>{$('folderHelp').hidden=true});
+updateResizeUI();updateFormatHint();renderList();renderPreview();updateStats();capabilities().catch(e=>notice('browserNotice','Browserprüfung fehlgeschlagen: '+e.message,'warn'));
+})();
+</script>
+</body>
+</html>
