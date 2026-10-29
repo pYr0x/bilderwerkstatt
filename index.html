@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>Bildwerkstatt · Offline</title>
+<title>Bilderwerkstatt · Offline</title>
 <style>
 :root{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#1b2938;background:#f4f6f8;font-size:15px}
 *{box-sizing:border-box}[hidden]{display:none!important}body{margin:0}button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}
@@ -366,7 +366,7 @@ details summary:focus-visible,
   font-size: var(--bw-size-small);
   line-height: 1.35;
 }
-.footer-author, .footer-contact {
+.footer-version, .footer-contact {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -415,11 +415,20 @@ details summary:focus-visible,
   .app-footer { align-items: flex-start; }
   .footer-contact { padding-left: 48px; }
 }
+/* Bildnavigation in der Vorschau-Card */
+.preview-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:15px}
+.preview-heading h2{margin:0}
+.preview-navigation{display:flex;align-items:center;gap:9px}
+.preview-position{min-width:78px;text-align:center;white-space:nowrap;font-size:var(--bw-size-small);color:var(--bw-text-muted);font-variant-numeric:tabular-nums}
+.preview-navigation .btn{min-width:36px}
+.zip-ready-actions{margin:9px 0 5px}
+.zip-ready-help{margin:7px 0 0;font-size:var(--bw-size-small);line-height:1.45}
+@media(max-width:500px){.preview-heading{align-items:flex-start}.preview-position{min-width:65px}}
 </style>
 </head>
 <body>
 <div class="shell">
-<header class="top"><div><h1>Bildwerkstatt</h1><p class="muted" style="margin:0">Bilder verkleinern, bearbeiten und speichern – ohne Installation.</p></div>
+<header class="top"><div><h1>Bilderwerkstatt</h1><p class="muted" style="margin:0">Bilder verkleinern, bearbeiten und speichern – ohne Installation.</p></div>
 <div class="header-side"><div class="pill" title="Keine Uploads, Skripte oder Webdienste"><span class="status-dot" aria-hidden="true"></span> Offline · Dateien bleiben lokal</div>
 <div class="browser-wrap" id="browserWrap"><button type="button" class="pill status-button" id="browserToggle" aria-expanded="false" aria-controls="browserCard"><span class="status-dot" id="browserDot" aria-hidden="true"></span><span>Browserfunktionen</span><span class="chevron" aria-hidden="true">⌄</span></button>
 <div class="browser-card" id="browserCard" aria-label="Browserfunktionen" aria-hidden="true"><h2>Browserfunktionen</h2><div id="capabilities" class="browsers" role="list" aria-live="polite">Funktionen werden geprüft …</div><div id="browserNotice" class="info warn" role="status" hidden></div></div></div></div></header>
@@ -428,8 +437,8 @@ details summary:focus-visible,
 <main>
 <section class="panel"><h2>1. Bilder auswählen</h2><div id="dropzone" class="drop" aria-label="Dateien hier ablegen"><strong>Bilder hier ablegen</strong><span>oder unten auswählen</span></div><div class="actions"><button type="button" class="btn outline" id="addFiles">+ Bilder auswählen</button><button type="button" class="btn outline" id="addFolder">+ Ganzen Ordner auswählen</button></div><input id="fileInput" type="file" accept="image/*,.heic,.heif,.jfif,.bmp,.tif,.tiff" multiple><input id="folderInput" type="file" accept="image/*,.heic,.heif,.jfif,.bmp,.tif,.tiff" webkitdirectory multiple><details class="minihelp"><summary>Welche Formate werden unterstützt?</summary><p>JPG, PNG, WebP, GIF und BMP. HEIC/HEIF und TIFF nur, wenn der Browser sie öffnen kann. Animationen werden zu Einzelbildern.</p></details><div id="importNotice" class="info" role="status"></div></section>
 <section class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h2 style="margin:0">2. Dateiliste <span id="fileCount" class="muted small">(0)</span></h2><button type="button" class="btn sm danger" id="deleteChecked" disabled>Ausgewählte entfernen</button></div><div id="emptyList" class="muted" style="padding:24px 0 8px">Noch keine Bilder ausgewählt.</div><div id="fileTableWrap" class="file-wrap" hidden><table class="files"><thead><tr><th class="check-cell"><input id="checkAll" class="file-check" type="checkbox" aria-label="Alle Bilder auswählen" title="Alle Bilder auswählen"></th><th>Bild · Auflösung</th><th>Vorher</th><th>Nachher (geschätzt / fertig)</th><th class="td-actions">Bearbeiten</th></tr></thead><tbody id="fileRows"></tbody></table></div></section>
-<section class="panel" id="previewPanel" hidden><h2>Vorschau &amp; Bearbeiten</h2><div class="preview-grid"><div><div class="preview-caption" id="originalCaption">Original</div><div class="preview-img" id="originalPreview"><span class="preview-placeholder">Vorschau nicht verfügbar</span><span id="cropIndicator" hidden>✂ Hier Ausschnitt aufziehen</span></div></div><div><div class="preview-caption" id="previewResultCaption">Bearbeitungsvorschau</div><div class="preview-img" id="newPreview"><span class="preview-placeholder">Nach der Verarbeitung sichtbar</span></div></div></div><div id="previewMeta" class="preview-info"></div><div class="actions" style="margin-top:14px"><button type="button" class="btn sm outline" id="rotLeft">↶ 90° links</button><button type="button" class="btn sm outline" id="rotRight">↷ 90° rechts</button><button type="button" class="btn sm outline" id="flip">⇄ Spiegeln</button><button type="button" class="btn sm outline" id="startCrop" aria-pressed="false">✂ Ausschnitt wählen</button><button type="button" class="btn sm outline" id="resetCrop" disabled>Zuschnitt entfernen</button><button type="button" class="btn sm outline" id="resetTransform">Alles zurücksetzen</button><button type="button" class="btn sm primary" id="downloadOne" disabled>Bild herunterladen</button></div><p class="hint crop-explain" id="cropHelp" hidden>Im <strong>markierten Original links</strong> einen Ausschnitt mit der Maus aufziehen.</p></section>
-<section class="panel"><h2>3. Verarbeiten &amp; exportieren</h2><div class="actions"><button type="button" class="btn primary" id="process" disabled>Bilder verarbeiten</button><button type="button" class="btn danger" id="cancel" hidden>Abbrechen</button><span id="progressText" class="small muted" role="status" aria-live="polite">Bitte zuerst Bilder auswählen.</span></div><progress class="progress" id="progress" value="0" max="100" hidden></progress><div id="processNotice" class="info" role="status"></div><div id="exportArea" hidden><div class="separator"></div><h3>Ergebnisse speichern</h3><div class="export"><button type="button" class="btn primary" id="shareIos" hidden>Teilen / In Fotos sichern</button><button type="button" class="btn primary" id="downloadZip">Ergebnisse herunterladen</button><button type="button" class="btn outline" id="quickDownload" hidden>Ohne Dialog herunterladen</button><button type="button" class="btn outline" id="saveFolder">Mehrere Bilder direkt in Ordner speichern</button></div><p class="export-note" id="exportNote"></p><div class="info" id="folderHelp" hidden><strong>Ordnerfreigabe erforderlich</strong><p style="margin:7px 0">Chrome fragt einmal „Zulassen“, um Dateien im gewählten Ordner zu speichern. Wähle einen Unterordner (nicht „Downloads“ selbst). Bereits vorhandene Dateien werden nicht überschrieben. Es werden keine Bilder hochgeladen.</p><div class="actions"><button type="button" class="btn primary" id="confirmFolder">Ordner auswählen und freigeben</button><button type="button" class="btn" id="cancelFolder">Abbrechen</button></div></div></div></section>
+<section class="panel" id="previewPanel" hidden><div class="preview-heading"><h2>Vorschau &amp; Bearbeiten</h2><nav class="preview-navigation" aria-label="Zwischen Bildern wechseln"><button type="button" class="btn sm outline" id="prevPreview" aria-label="Vorheriges Bild" title="Vorheriges Bild" disabled>←</button><span id="previewPosition" class="preview-position" aria-live="polite">1 / 1</span><button type="button" class="btn sm outline" id="nextPreview" aria-label="Nächstes Bild" title="Nächstes Bild" disabled>→</button></nav></div><div class="preview-grid"><div><div class="preview-caption" id="originalCaption">Original</div><div class="preview-img" id="originalPreview"><span class="preview-placeholder">Vorschau nicht verfügbar</span><span id="cropIndicator" hidden>✂ Hier Ausschnitt aufziehen</span></div></div><div><div class="preview-caption" id="previewResultCaption">Bearbeitungsvorschau</div><div class="preview-img" id="newPreview"><span class="preview-placeholder">Nach der Verarbeitung sichtbar</span></div></div></div><div id="previewMeta" class="preview-info"></div><div class="actions" style="margin-top:14px"><button type="button" class="btn sm outline" id="rotLeft">↶ 90° links</button><button type="button" class="btn sm outline" id="rotRight">↷ 90° rechts</button><button type="button" class="btn sm outline" id="flip">⇄ Spiegeln</button><button type="button" class="btn sm outline" id="startCrop" aria-pressed="false">✂ Ausschnitt wählen</button><button type="button" class="btn sm outline" id="resetCrop" disabled>Zuschnitt entfernen</button><button type="button" class="btn sm outline" id="resetTransform">Alles zurücksetzen</button><button type="button" class="btn sm primary" id="downloadOne" disabled>Bild herunterladen</button></div><p class="hint crop-explain" id="cropHelp" hidden>Im <strong>markierten Original links</strong> einen Ausschnitt mit der Maus aufziehen.</p></section>
+<section class="panel"><h2>3. Verarbeiten &amp; exportieren</h2><div class="actions"><button type="button" class="btn primary" id="process" disabled>Bilder verarbeiten</button><button type="button" class="btn danger" id="cancel" hidden>Abbrechen</button><span id="progressText" class="small muted" role="status" aria-live="polite">Bitte zuerst Bilder auswählen.</span></div><progress class="progress" id="progress" value="0" max="100" hidden></progress><div id="processNotice" class="info" role="status"></div><div id="exportArea" hidden><div class="separator"></div><h3>Ergebnisse speichern</h3><div class="export"><button type="button" class="btn primary" id="shareIos" hidden>Teilen / In Fotos sichern</button><button type="button" class="btn primary" id="downloadZip">Ergebnisse herunterladen</button><button type="button" class="btn outline" id="quickDownload" hidden>Ohne Dialog herunterladen</button><button type="button" class="btn outline" id="saveFolder">Mehrere Bilder direkt in Ordner speichern</button></div><p class="export-note" id="exportNote"></p><div id="zipReady" class="info" hidden><strong id="zipReadyStatus">ZIP erstellt</strong><div class="actions zip-ready-actions"><a id="zipReadyLink" class="btn outline" href="#" download="Bilder_optimiert.zip">ZIP-Datei herunterladen</a><button type="button" class="btn outline" id="savePreparedZip" hidden>ZIP über Dateidialog speichern</button></div><p id="zipReadyHelp" class="zip-ready-help"></p></div><div class="info" id="folderHelp" hidden><strong>Ordnerfreigabe erforderlich</strong><p style="margin:7px 0">Chrome fragt einmal „Zulassen“, um Dateien im gewählten Ordner zu speichern. Wähle einen Unterordner (nicht „Downloads“ selbst). Bereits vorhandene Dateien werden nicht überschrieben. Es werden keine Bilder hochgeladen.</p><div class="actions"><button type="button" class="btn primary" id="confirmFolder">Ordner auswählen und freigeben</button><button type="button" class="btn" id="cancelFolder">Abbrechen</button></div></div></div></section>
 </main>
 <aside>
 <section class="panel"><h2>Einstellungen</h2><fieldset class="settings" id="settingsFieldset">
@@ -449,7 +458,8 @@ details summary:focus-visible,
 <details class="panel minihelp" style="padding-top:12px;padding-bottom:12px"><summary>Datenschutz &amp; technische Grenzen</summary><p>Die Verarbeitung erfolgt ausschließlich im Browser, ohne Upload und ohne externe Bibliotheken. Sehr große Bildmengen können den Arbeitsspeicher belasten. Animationen und bestimmte Farbprofile können bei der Umwandlung verloren gehen.</p></details>
 </aside></div>
 <footer class="app-footer" aria-label="Kontakt zum Entwickler">
-  <div class="footer-author">
+  <div class="footer-version">
+    <span class="footer-unit" title="Version">Version 2.7</span>
   </div>
   <div class="footer-contact">
   </div>
@@ -478,9 +488,9 @@ const canShareFilesOnIOS = () => {
  if (!isIOS() || typeof navigator.share !== 'function' || typeof navigator.canShare !== 'function') return false;
  try { return navigator.canShare({ files: [new File([new Uint8Array(1)], 'probe.jpg', { type: 'image/jpeg' })] }); } catch { return false; }
 };
-const state={items:[],selected:null,next:1,busy:false,cancel:false,formats:new Set(['image/png']),previewUrls:[],rows:new Map(),workingMode:'',previewSeq:0,estimateSeq:0,estimateTimer:null,metaRunning:false,cropMode:false,cropDrag:null,iosShare:canShareFilesOnIOS()};
+const state={items:[],selected:null,next:1,busy:false,cancel:false,formats:new Set(['image/png']),previewUrls:[],rows:new Map(),workingMode:'',previewSeq:0,estimateSeq:0,estimateTimer:null,metaRunning:false,cropMode:false,cropDrag:null,iosShare:canShareFilesOnIOS(),zipUrl:null,zipBlob:null,zipValid:false};
 const notice=(id,message,kind='')=>{const el=$(id);el.textContent=message;el.className='info'+(kind?' '+kind:'')};
-const addCap=(label,enabled,reason='')=>{const row=document.createElement('div');row.className='cap '+(enabled?'ok':'no');row.setAttribute('role','listitem');if(reason)row.title=reason;const dot=document.createElement('span');dot.className='status-dot'+(enabled?'':' warn');dot.setAttribute('aria-hidden','true');const name=document.createElement('span');name.className='cap-label';name.textContent=label;const status=document.createElement('span');status.className='cap-state';status.textContent=enabled?'Verfügbar':'Nicht verfügbar';row.append(dot,name,status);$('capabilities').append(row);return enabled};
+const addCap=(label,enabled,reason='',limited=false)=>{const row=document.createElement('div');row.className='cap '+(limited?'limited':enabled?'ok':'no');row.setAttribute('role','listitem');if(reason)row.title=reason;const dot=document.createElement('span');dot.className='status-dot'+(enabled&&!limited?'':' warn');dot.setAttribute('aria-hidden','true');const name=document.createElement('span');name.className='cap-label';name.textContent=label;const status=document.createElement('span');status.className='cap-state';status.textContent=limited?'Eingeschränkt':enabled?'Verfügbar':'Nicht verfügbar';row.append(dot,name,status);$('capabilities').append(row);return enabled};
 function setBrowserOpen(open){$('browserToggle').setAttribute('aria-expanded',String(open));$('browserCard').classList.toggle('open',open);$('browserCard').setAttribute('aria-hidden',String(!open))}
 $('browserToggle').addEventListener('click',()=>setBrowserOpen($('browserToggle').getAttribute('aria-expanded')!=='true'));
 document.addEventListener('pointerdown',e=>{if(!$('browserWrap').contains(e.target))setBrowserOpen(false)});
@@ -490,7 +500,11 @@ async function capabilities(){
  $('capabilities').replaceChildren();
  const results=await Promise.all(['image/jpeg','image/webp'].map(probeMime));
  ['image/jpeg','image/webp'].forEach((mime,i)=>{if(results[i])state.formats.add(mime);addCap(({ 'image/jpeg':'JPEG exportieren','image/webp':'WebP exportieren'})[mime],results[i],'Ausgabe-Encoder im Browser geprüft')});
- addCap('PNG exportieren',true);
+  addCap('PNG exportieren',true);
+  const zipWorks=await testZipCreation();state.zipValid=zipWorks;
+  addCap('ZIP-Archiv erstellen',zipWorks,'ZIP-Struktur mit einer Testdatei und CRC32-Prüfsumme geprüft.');
+  const embedded=isEmbedded();
+  addCap('ZIP herunterladen',zipWorks,embedded?'Eingebettete SharePoint-/iFrame-Vorschauen können Downloads durch Sandbox-Richtlinien sperren. Ein manuell anklickbarer Downloadlink wird nach der ZIP-Erstellung angezeigt.':'Browserdownload ist verfügbar, der erfolgreiche Speichervorgang kann jedoch nicht automatisch bestätigt werden.',embedded&&zipWorks);
  addCap('Speichern unter',typeof window.showSaveFilePicker==='function'&&window.isSecureContext,'Einzelbild mit System-Dateidialog speichern – keine generelle Ordnerfreigabe erforderlich');
  const directory=typeof window.showDirectoryPicker==='function'&&window.isSecureContext;
  addCap('In Ordner speichern',directory,'Dateisystem-Zugriff: ggf. durch Browserrichtlinien blockiert');
@@ -499,14 +513,16 @@ async function capabilities(){
  $('saveFolder').disabled=!directory;$('addFolder').disabled=!folder;
  for(const mime of ['image/jpeg','image/webp']){const opt=[...$('format').options].find(o=>o.value===mime);if(opt&&!state.formats.has(mime))opt.disabled=true}
  const issues=[];
- if(!directory)issues.push('Direkter Ordnerexport nicht verfügbar – bitte ZIP-Download verwenden.');
+ if(!directory)issues.push('Direkter Ordnerexport nicht verfügbar – ZIP-Erstellung nutzen.');
+  if(!zipWorks)issues.push('ZIP-Erstellung ist in dieser Browserumgebung nicht möglich.');
+  if(embedded)issues.push('Eingebettete Ansicht erkannt: SharePoint kann ZIP-Downloads sperren. Nach dem Erstellen den direkten ZIP-Link verwenden; falls er blockiert wird, HTML-Datei außerhalb der SharePoint-Vorschau öffnen.');
  if(!state.formats.has('image/jpeg'))issues.push('JPEG-Ausgabe in diesem Browser nicht verfügbar.');
  if(!state.formats.has('image/webp'))issues.push('WebP-Ausgabe nicht verfügbar; JPEG oder PNG verwenden.');
  const browserMessage=$('browserNotice');browserMessage.hidden=!issues.length;
  if(issues.length)notice('browserNotice',issues.join(' '),'warn');
  $('browserDot').classList.toggle('warn',issues.length>0||!directory||!folder||results.some(x=>!x)||typeof window.showSaveFilePicker!=='function');
  if($('format').value!=='same'&&!state.formats.has($('format').value)){$('format').value='same';$('preset').value='custom';}
- updateFormatHint();
+ updateFormatHint();controls();
 }
 function updateFormatHint(){const val=$('format').value;
  $('qualityRow').hidden=$('preset').value!=='custom'||val==='image/png';
@@ -521,7 +537,7 @@ function updateResizeUI(){$('edgeRow').hidden=$('resizeMode').value!=='edge'}
 function applyPreset(name){const p=PRESETS[name];if(!p)return;if(p.format!=='same'&&!state.formats.has(p.format)){notice('processNotice','Dieses Format wird von deinem Browser nicht unterstützt. Bitte anderes Format auswählen.','warn');$('preset').value='custom';updateFormatHint();return}
  $('format').value=p.format;$('resizeMode').value=p.mode;$('maxEdge').value=p.edge;$('quality').value=p.q;$('qualityValue').textContent=p.q+' %';updateResizeUI();updateFormatHint();invalidateOutputs();}
 function getConfig(){const integer=(id,min,max)=>Math.max(min,Math.min(max,Number.parseInt($(id).value,10)||min));return {format:$('format').value,mode:$('resizeMode').value,edge:integer('maxEdge',100,20000),quality:integer('quality',35,100)/100,targetKB:integer('targetKB',0,200000),bg:$('bgColor').value,suffix:$('suffix').value.trim().replace(/[\\/:*?"<>|\x00-\x1f]/g,'_').slice(0,55)}}
-function invalidateOutputs(){$('folderHelp').hidden=true;const epoch=++state.estimateSeq;clearTimeout(state.estimateTimer);let changed=false;for(const item of state.items){item.estimate=null;if(item.result||item.status==='Fehler'||item.message){changed=true}item.status='Bereit';item.message='';item.result=null;item.outputName='';item.ow=0;item.oh=0;}
+function invalidateOutputs(){clearZipReady();$('folderHelp').hidden=true;const epoch=++state.estimateSeq;clearTimeout(state.estimateTimer);let changed=false;for(const item of state.items){item.estimate=null;if(item.result||item.status==='Fehler'||item.message){changed=true}item.status='Bereit';item.message='';item.result=null;item.outputName='';item.ow=0;item.oh=0;}
  if(changed){notice('processNotice','Dateiauswahl oder Bearbeitung geändert. Vor dem Export bitte Bilder erneut verarbeiten.','warn');$('progressText').textContent='Änderungen vorgenommen – bitte erneut verarbeiten.';renderList();renderPreview();updateStats()}else for(const item of state.items)updateRow(item);scheduleEstimates(epoch)}
 function ingest(list,from='Auswahl'){
  if(state.busy)return;let added=0,skipped=0;const existing=new Set(state.items.map(x=>[x.file.name,x.file.size,x.file.lastModified,x.file.webkitRelativePath||''].join('|')));
@@ -553,6 +569,7 @@ async function loadDimensions(){
 function updateCheckAll(){const count=state.items.filter(x=>x.checked).length,all=$('checkAll');all.checked=state.items.length>0&&count===state.items.length;all.indeterminate=count>0&&count<state.items.length;$('deleteChecked').disabled=state.busy||count===0;$('deleteChecked').textContent=count?`Ausgewählte entfernen (${count})`:'Ausgewählte entfernen'}
 function removeItems(ids){
  if(!ids.size||state.busy)return;
+ clearZipReady();
  state.estimateSeq++;clearTimeout(state.estimateTimer);
  state.items=state.items.filter(it=>!ids.has(it.id));
  if(!state.items.some(it=>it.id===state.selected)){state.selected=state.items[0]?.id??null;state.cropMode=false;state.cropDrag=null}
@@ -567,19 +584,32 @@ function renderList(){const tbody=$('fileRows');tbody.replaceChildren();state.ro
  const actionCell=document.createElement('td');actionCell.className='td-actions';const select=document.createElement('button');select.type='button';select.className='btn sm';select.dataset.action='select';select.textContent='✎ Bearbeiten';select.title='Vorschau und Bild bearbeiten';select.setAttribute('aria-label','Vorschau und Bearbeiten: '+item.file.name);const del=document.createElement('button');del.type='button';del.className='btn sm danger';del.dataset.action='delete';del.textContent='×';del.title='Datei aus Liste entfernen';del.setAttribute('aria-label','Entfernen: '+item.file.name);del.style.marginLeft='5px';actionCell.append(select,del);row.append(checkCell,nameCell,sizeCell,statusCell,actionCell);tbody.append(row);state.rows.set(item.id,{row,statusCell,del,sub,checkbox});updateRow(item)}
  updateCheckAll();controls();}
 function updateRow(item){const ref=state.rows.get(item.id);if(!ref)return;const {statusCell,row,del,sub,checkbox}=ref;sub.textContent=item.iw&&item.ih?`${item.iw} × ${item.ih} px${item.crop?' · Zuschnitt gesetzt':''}`:item.metadataFailed?'Auflösung nicht lesbar':'Auflösung wird ermittelt …';checkbox.checked=!!item.checked;statusCell.replaceChildren();const top=document.createElement('div');top.textContent=item.result?`${item.outputName} · ${pretty(item.result.size)}`:item.estimate!=null?`ca. ${pretty(item.estimate)} (geschätzt)`:item.status;top.className=item.status==='Fehler'?'bad':'';statusCell.append(top);if(item.result){const second=document.createElement('div');second.className='file-sub';const pct=item.file.size?`${sizes.format(Math.abs((item.file.size-item.result.size)/item.file.size*100))} %`:'–';second.textContent=`${item.ow} × ${item.oh} px · ${item.result.size===item.file.size?'':item.result.size<item.file.size?'−':'+'}${pct}${item.usedOriginal?' · Original übernommen':''}`;second.classList.add(item.result.size<=item.file.size?'positive':'negative');statusCell.append(second)}if(item.message){const msg=document.createElement('div');msg.className='file-sub';msg.textContent=item.message;statusCell.append(msg)}row.classList.toggle('selected',item.id===state.selected);del.disabled=state.busy}
-function controls(){const any=state.items.length>0;$('process').disabled=!any||state.busy;$('deleteChecked').disabled=state.busy||!state.items.some(x=>x.checked);$('addFiles').disabled=state.busy;$('addFolder').disabled=state.busy||!('webkitdirectory' in $('folderInput'));$('settingsFieldset').disabled=state.busy;$('cancel').hidden=!state.busy;$('progress').hidden=!state.busy;
+function controls(){const any=state.items.length>0;
+  const currentIndex=state.items.findIndex(x=>x.id===state.selected);
+  $('previewPosition').textContent=currentIndex<0?'0 / 0':`${currentIndex+1} / ${state.items.length}`;
+  $('prevPreview').disabled=state.busy||currentIndex<=0;
+  $('nextPreview').disabled=state.busy||currentIndex<0||currentIndex>=state.items.length-1;$('process').disabled=!any||state.busy;$('deleteChecked').disabled=state.busy||!state.items.some(x=>x.checked);$('addFiles').disabled=state.busy;$('addFolder').disabled=state.busy||!('webkitdirectory' in $('folderInput'));$('settingsFieldset').disabled=state.busy;$('cancel').hidden=!state.busy;$('progress').hidden=!state.busy;
  const resultCount=state.items.filter(x=>!!x.result).length;const has=resultCount>0;$('exportArea').hidden=!has;
  const showIosShare=state.iosShare&&has;
  $('shareIos').hidden=!showIosShare;$('shareIos').disabled=state.busy||!showIosShare;
  $('shareIos').textContent=resultCount===1?'Teilen / In Fotos sichern':`${resultCount} Bilder teilen / In Fotos sichern`;
  $('downloadZip').className=showIosShare?'btn outline':'btn primary';
- $('downloadZip').disabled=state.busy||!has;$('downloadZip').textContent=resultCount===1?'Bild speichern unter …':resultCount>1?`Alle ${resultCount} Bilder als ZIP herunterladen`:'Ergebnisse herunterladen';$('quickDownload').hidden=resultCount!==1||showIosShare;$('quickDownload').disabled=state.busy||!has;$('exportNote').textContent=showIosShare?'Tipp für iPad & iPhone: Über „Teilen / In Fotos sichern“ direkt in der Fotos-Mediathek speichern oder per AirDrop/Mail senden.':resultCount===1?'Einzeln speichern – ohne Ordnerfreigabe.':'ZIP-Download ohne Berechtigungsfrage.';$('saveFolder').textContent=resultCount===1?'In Ordner speichern (Freigabe nötig)':'Einzelbilder in Ordner speichern (Freigabe nötig)';$('saveFolder').disabled=state.busy||!has||typeof window.showDirectoryPicker!=='function'||!window.isSecureContext;$('confirmFolder').disabled=state.busy||!has;$('cancelFolder').disabled=state.busy;if(!has)$('folderHelp').hidden=true;$('downloadOne').disabled=state.busy||!state.items.some(x=>x.id===state.selected&&x.result);['rotLeft','rotRight','flip','resetTransform','startCrop'].forEach(id=>$(id).disabled=state.busy||state.selected===null);const sel=state.items.find(x=>x.id===state.selected);$('resetCrop').disabled=state.busy||!sel?.crop;$('startCrop').setAttribute('aria-pressed',String(state.cropMode));$('startCrop').textContent=state.cropMode?'✂ Zuschnitt abbrechen':'✂ Ausschnitt wählen';
+ $('downloadZip').disabled=state.busy||!has||(resultCount>1&&!state.zipValid);$('downloadZip').textContent=resultCount===1?'Bild speichern unter …':resultCount>1?(isEmbedded()?`Alle ${resultCount} Bilder als ZIP erstellen`:`Alle ${resultCount} Bilder als ZIP herunterladen`):'Ergebnisse herunterladen';$('quickDownload').hidden=resultCount!==1||showIosShare;$('quickDownload').disabled=state.busy||!has;$('exportNote').textContent=showIosShare?'Tipp für iPad & iPhone: Über „Teilen / In Fotos sichern“ direkt in der Fotos-Mediathek speichern oder per AirDrop/Mail senden.':resultCount===1?'Einzeln speichern – ohne Ordnerfreigabe.':isEmbedded()?'ZIP-Erstellung lokal; SharePoint kann den Download sperren.':'ZIP-Download ohne Ordnerfreigabe.';$('saveFolder').textContent=resultCount===1?'In Ordner speichern (Freigabe nötig)':'Einzelbilder in Ordner speichern (Freigabe nötig)';$('saveFolder').disabled=state.busy||!has||typeof window.showDirectoryPicker!=='function'||!window.isSecureContext;$('confirmFolder').disabled=state.busy||!has;$('cancelFolder').disabled=state.busy;if(!has)$('folderHelp').hidden=true;$('downloadOne').disabled=state.busy||!state.items.some(x=>x.id===state.selected&&x.result);['rotLeft','rotRight','flip','resetTransform','startCrop'].forEach(id=>$(id).disabled=state.busy||state.selected===null);const sel=state.items.find(x=>x.id===state.selected);$('resetCrop').disabled=state.busy||!sel?.crop;$('startCrop').setAttribute('aria-pressed',String(state.cropMode));$('startCrop').textContent=state.cropMode?'✂ Zuschnitt abbrechen':'✂ Ausschnitt wählen';
  const cropActive=state.cropMode&&!state.busy&&state.selected!==null;
  $('originalPreview').classList.toggle('crop-mode',cropActive);$('originalPreview').classList.toggle('crop-edit',cropActive);
  $('cropHelp').hidden=!cropActive;$('originalCaption').textContent=cropActive?'Original · Ausschnitt markieren':'Original';
  const cropIndicator=$('cropIndicator');if(cropIndicator)cropIndicator.hidden=!cropActive;updateCheckAll();}
 function updateStats(){const all=state.items;const done=all.filter(x=>!!x.result);const orig=all.reduce((s,x)=>s+x.file.size,0);const processed=done.reduce((s,x)=>s+x.file.size,0);const result=done.reduce((s,x)=>s+x.result.size,0);
  $('statCount').textContent=all.length;$('statDone').textContent=done.length;$('statOriginal').textContent=pretty(orig);$('statResult').textContent=done.length?pretty(result):'–';$('statSaving').textContent=done.length?`${difference(processed,result)} (${pretty(Math.abs(processed-result))} ${processed>=result?'weniger':'mehr'})`:'–';controls();}
+function navigatePreview(step){
+  if(state.busy)return;
+  const index=state.items.findIndex(x=>x.id===state.selected);
+  const next=index+step;
+  if(index<0||next<0||next>=state.items.length)return;
+  state.selected=state.items[next].id;
+  state.cropMode=false;state.cropDrag=null;
+  renderPreview();
+}
 function releasePreview(){for(const u of state.previewUrls)URL.revokeObjectURL(u);state.previewUrls=[]}
 function showPicture(container,blob,text){container.replaceChildren();if(!blob){const sp=document.createElement('span');sp.className='preview-placeholder';sp.textContent=text;container.append(sp);return}const url=URL.createObjectURL(blob);state.previewUrls.push(url);const img=document.createElement('img');img.alt=text;img.draggable=false;img.src=url;img.onerror=()=>{if(img.isConnected){const sp=document.createElement('span');sp.className='preview-placeholder';sp.textContent='Vorschau für dieses Format nicht verfügbar';container.replaceChildren(sp)}};container.append(img)}
 function updatePreviewInfo(item){
@@ -707,10 +737,10 @@ async function calculateEstimates(epoch){
  }
 }
 function tick(){return new Promise(resolve=>setTimeout(resolve,0))}
-async function runProcessing(){if(state.busy||!state.items.length)return;state.estimateSeq++;clearTimeout(state.estimateTimer);state.busy=true;state.cancel=false;state.workingMode='processing';const config=getConfig();const names=new Set();for(const item of state.items){item.result=null;item.status='Wartet';item.message='';item.outputName='';item.usedOriginal=false}renderList();renderPreview();updateStats();$('progress').value=0;$('progress').hidden=false;let done=0,failed=0;
+async function runProcessing(){if(state.busy||!state.items.length)return;clearZipReady();state.estimateSeq++;clearTimeout(state.estimateTimer);state.busy=true;state.cancel=false;state.workingMode='processing';const config=getConfig();const names=new Set();for(const item of state.items){item.result=null;item.status='Wartet';item.message='';item.outputName='';item.usedOriginal=false}renderList();renderPreview();updateStats();$('progress').value=0;$('progress').hidden=false;let done=0,failed=0;
  try{for(const item of state.items){if(state.cancel)break;item.status='Verarbeitung läuft …';updateRow(item);$('progressText').textContent=`Bild ${done+failed+1} von ${state.items.length}: ${item.file.name}`;await tick();try{await processItem(item,config,names);done++}catch(e){failed++;item.status='Fehler';item.message=(e&&e.message)||String(e);item.result=null}updateRow(item);$('progress').value=100*(done+failed)/state.items.length;updateStats();if(item.id===state.selected)renderPreview();await tick()}}
  finally{state.busy=false;state.workingMode='';$('progressText').textContent=state.cancel?`Abgebrochen · ${done} verarbeitet, ${failed} Fehler`:`${done} erfolgreich verarbeitet${failed?', '+failed+' Fehler':''}.`;
- notice('processNotice',state.cancel?'Vorgang abgebrochen. Bereits erstellte Ergebnisse können gespeichert werden.':failed?'Einige Bilder konnten nicht verarbeitet werden. Die Fehler stehen in der Dateiliste.':'Fertig! Ergebnisse jetzt als ZIP herunterladen oder in einen Zielordner speichern.',failed?'warn':'good');controls();renderList();renderPreview();updateStats()}}
+ notice('processNotice',state.cancel?'Vorgang abgebrochen. Bereits erstellte Ergebnisse können gespeichert werden.':failed?'Einige Bilder konnten nicht verarbeitet werden. Die Fehler stehen in der Dateiliste.':done===1?'Fertig! Das Bild kann jetzt gespeichert werden.':'Fertig! Ergebnisse jetzt als ZIP erstellen oder in einen Zielordner speichern.',failed?'warn':'good');controls();renderList();renderPreview();updateStats()}}
 function downloadBlob(blob,name){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)}
 // ZIP-Container im STORE-Modus (ohne erneute Kompression bereits komprimierter Bilder).
 // Alle CRC32-Checksummen werden im Browser aus Datenströmen berechnet; keine Fremdbibliothek.
@@ -719,9 +749,54 @@ async function crc32(blob){let c=0xffffffff;if(typeof blob.stream==='function'){
 function zipTimes(date){const year=Math.max(1980,date.getFullYear());return {date:((year-1980)<<9)|((date.getMonth()+1)<<5)|date.getDate(),time:(date.getHours()<<11)|(date.getMinutes()<<5)|(date.getSeconds()>>1)}}
 function zipLocal(name,crc,size,dt){const buf=new ArrayBuffer(30+name.length),v=new DataView(buf);v.setUint32(0,0x04034b50,true);v.setUint16(4,20,true);v.setUint16(6,0x0800,true);v.setUint16(8,0,true);v.setUint16(10,dt.time,true);v.setUint16(12,dt.date,true);v.setUint32(14,crc,true);v.setUint32(18,size,true);v.setUint32(22,size,true);v.setUint16(26,name.length,true);new Uint8Array(buf,30).set(name);return buf}
 function zipCentral(name,crc,size,offset,dt){const buf=new ArrayBuffer(46+name.length),v=new DataView(buf);v.setUint32(0,0x02014b50,true);v.setUint16(4,20,true);v.setUint16(6,20,true);v.setUint16(8,0x0800,true);v.setUint16(10,0,true);v.setUint16(12,dt.time,true);v.setUint16(14,dt.date,true);v.setUint32(16,crc,true);v.setUint32(20,size,true);v.setUint32(24,size,true);v.setUint16(28,name.length,true);v.setUint32(42,offset,true);new Uint8Array(buf,46).set(name);return buf}
-async function makeZip(items){if(items.length>65535)throw Error('ZIP unterstützt maximal 65.535 Einträge.');const encoder=new TextEncoder();const pieces=[],central=[];let offset=0;const dt=zipTimes(new Date());
- for(let i=0;i<items.length;i++){if(state.cancel)throw Error('Export abgebrochen');const item=items[i],name=encoder.encode(item.outputName),blob=item.result;if(name.length>65535||blob.size>0xffffffff)throw Error('Ein Bild ist für dieses ZIP-Format zu groß.');const sum=await crc32(blob);const local=zipLocal(name,sum,blob.size,dt);if(offset+local.byteLength+blob.size>0xffffffff)throw Error('ZIP größer als 4 GB – bitte in kleinere Pakete aufteilen.');central.push(zipCentral(name,sum,blob.size,offset,dt));pieces.push(local,blob);offset+=local.byteLength+blob.size;$('progressText').textContent=`ZIP wird erstellt: ${i+1}/${items.length}`;$('progress').value=100*(i+1)/items.length;await tick()}
+async function makeZip(items,onProgress=null){if(items.length>65535)throw Error('ZIP unterstützt maximal 65.535 Einträge.');const encoder=new TextEncoder();const pieces=[],central=[];let offset=0;const dt=zipTimes(new Date());
+ for(let i=0;i<items.length;i++){if(state.cancel)throw Error('Export abgebrochen');const item=items[i],name=encoder.encode(item.outputName),blob=item.result;if(name.length>65535||blob.size>0xffffffff)throw Error('Ein Bild ist für dieses ZIP-Format zu groß.');const sum=await crc32(blob);const local=zipLocal(name,sum,blob.size,dt);if(offset+local.byteLength+blob.size>0xffffffff)throw Error('ZIP größer als 4 GB – bitte in kleinere Pakete aufteilen.');central.push(zipCentral(name,sum,blob.size,offset,dt));pieces.push(local,blob);offset+=local.byteLength+blob.size;if(onProgress)onProgress(i+1,items.length);await tick()}
  let centralSize=0;for(const entry of central)centralSize+=entry.byteLength;if(offset+centralSize+22>0xffffffff)throw Error('ZIP größer als 4 GB – bitte in kleinere Pakete aufteilen.');for(const entry of central)pieces.push(entry);const end=new ArrayBuffer(22),v=new DataView(end);v.setUint32(0,0x06054b50,true);v.setUint16(8,items.length,true);v.setUint16(10,items.length,true);v.setUint32(12,centralSize,true);v.setUint32(16,offset,true);pieces.push(end);return new Blob(pieces,{type:'application/zip'})}
+// Der ZIP-Selbsttest prüft tatsächliche ZIP-Bytes und CRC, nicht nur die Existenz von APIs.
+async function testZipCreation(){
+ try{
+  if(typeof Blob!=='function'||typeof TextEncoder!=='function'||typeof DataView!=='function'||typeof Uint8Array!=='function')return false;
+  const probe=await makeZip([{outputName:'probe.txt',result:new Blob(['abc'])}]);
+  const b=new DataView(await probe.arrayBuffer());
+  return b.getUint32(0,true)===0x04034b50&&b.getUint32(14,true)===0x352441c2&&b.getUint32(b.byteLength-22,true)===0x06054b50&&b.getUint16(b.byteLength-12,true)===1;
+ }catch(_){return false}
+}
+// Ein iFrame kann den Download untersagen, obwohl ZIP-Erstellung und Blob funktionieren.
+function isEmbedded(){try{return window.self!==window.top}catch(_){return true}}
+function canSaveWithPicker(){return typeof window.showSaveFilePicker==='function'&&window.isSecureContext}
+function clearZipReady(){
+ if(state.zipUrl)URL.revokeObjectURL(state.zipUrl);
+ state.zipUrl=null;state.zipBlob=null;
+ $('zipReadyLink').removeAttribute('href');
+ $('zipReady').hidden=true;
+}
+function prepareZipReady(blob){
+ clearZipReady();
+ state.zipBlob=blob;
+ state.zipUrl=URL.createObjectURL(blob);
+ $('zipReadyLink').href=state.zipUrl;
+ $('zipReadyLink').download='Bilder_optimiert.zip';
+ $('savePreparedZip').hidden=!canSaveWithPicker();
+ $('zipReadyStatus').textContent=`ZIP-Datei erstellt (${pretty(blob.size)})`;
+ $('zipReadyHelp').textContent=isEmbedded()?
+  'Eingebettete SharePoint-Vorschauen können Downloads sperren. Wenn der Link nicht funktioniert und auch der Dateidialog blockiert wird: HTML-Datei herunterladen und außerhalb der SharePoint-Vorschau in Chrome oder Edge öffnen.':
+  'Falls kein Download startet, den direkten Link verwenden oder – sofern verfügbar – über den Dateidialog speichern.';
+ $('zipReady').hidden=false;
+}
+async function savePreparedZip(){
+ const blob=state.zipBlob;
+ if(!blob||state.busy||!canSaveWithPicker())return;
+ try{
+  // Der Dateidialog wird direkt durch den Klick geöffnet: keine asynchronen Arbeitsschritte davor.
+  const handle=await window.showSaveFilePicker({suggestedName:'Bilder_optimiert.zip',types:[{description:'ZIP-Archiv',accept:{'application/zip':['.zip']}}]});
+  const writer=await handle.createWritable();
+  try{await writer.write(blob);await writer.close()}catch(e){try{await writer.abort()}catch(_){}throw e}
+  notice('processNotice',`ZIP-Datei als „${handle.name||'Bilder_optimiert.zip'}“ gespeichert.`,'good');
+ }catch(e){
+  if(e.name==='AbortError')return;
+  notice('processNotice','ZIP-Speicherdialog nicht verfügbar: '+(e.message||e)+'. Probiere den direkten ZIP-Link oder öffne die HTML-Datei außerhalb von SharePoint.','warn');
+ }
+}
 async function saveSingle(item){
  if(!item?.result||state.busy)return;
  if(typeof window.showSaveFilePicker!=='function'||!window.isSecureContext){
@@ -757,7 +832,26 @@ async function shareOnIos(){
   notice('processNotice','Teilen auf iPad/iPhone nicht möglich: '+(e.message||e)+'. Bitte stattdessen den Download-Button nutzen.','warn');
  }
 }
-async function runZip(){const items=state.items.filter(x=>x.result);if(!items.length||state.busy)return;if(items.length===1){await saveSingle(items[0]);return;}state.busy=true;state.workingMode='zip';state.cancel=false;controls();$('progress').value=0;try{const blob=await makeZip(items);if(!state.cancel){downloadBlob(blob,'Bilder_optimiert.zip');notice('processNotice',`${items.length} Bilder wurden als ZIP zum Download übergeben (${pretty(blob.size)}).`,'good')}}catch(e){notice('processNotice',e.message,'error')}finally{state.busy=false;state.workingMode='';$('progressText').textContent='ZIP-Export beendet';controls()}}
+async function runZip(){
+ const items=state.items.filter(x=>x.result);
+ if(!items.length||state.busy)return;
+ if(items.length===1){await saveSingle(items[0]);return}
+ if(!state.zipValid){notice('processNotice','ZIP-Erstellung ist laut Browser-Selbsttest nicht möglich.','error');return}
+ clearZipReady();state.busy=true;state.workingMode='zip';state.cancel=false;controls();$('progress').value=0;
+ try{
+  const blob=await makeZip(items,(done,total)=>{$('progressText').textContent=`ZIP wird erstellt: ${done}/${total}`;$('progress').value=100*done/total});
+  if(!state.cancel){
+   prepareZipReady(blob);
+   if(isEmbedded()){
+    notice('processNotice',`ZIP mit ${items.length} Bildern erstellt (${pretty(blob.size)}). Bitte den direkten ZIP-Link unter „Ergebnisse speichern“ anklicken. Ob SharePoint den Download zulässt, entscheidet die Einbettung.`,'warn');
+   }else{
+    downloadBlob(blob,'Bilder_optimiert.zip');
+    notice('processNotice',`ZIP mit ${items.length} Bildern erstellt (${pretty(blob.size)}). Download angefordert; falls er nicht startet, den direkten ZIP-Link verwenden.`,'good');
+   }
+  }
+ }catch(e){notice('processNotice','ZIP-Erstellung fehlgeschlagen: '+(e.message||e),'error')}
+ finally{state.busy=false;state.workingMode='';$('progressText').textContent='ZIP-Export beendet';controls()}
+}
 async function nameExists(handle,name){try{await handle.getFileHandle(name,{create:false});return true}catch(e){if(e&&e.name==='NotFoundError')return false;throw e}}
 async function availableName(handle,name){const match=name.match(/^(.*?)(\.[^.]*)?$/);const base=match[1],ext=match[2]||'';for(let i=1;i<=10000;i++){const candidate=i===1?name:`${base}_${i}${ext}`;if(!await nameExists(handle,candidate))return candidate}throw Error('Zu viele Namenskonflikte im Zielordner')}
 async function saveToFolder(){if(state.busy||typeof window.showDirectoryPicker!=='function')return;let handle;try{handle=await window.showDirectoryPicker({mode:'readwrite',startIn:'documents'})}catch(e){notice('processNotice',(e.name==='AbortError'?'Ordnerauswahl abgebrochen oder Ordner durch Chrome gesperrt. ':'Ordnerzugriff nicht möglich: '+e.message+'. ')+'Tipp: Unterordner wie Downloads\\Bilder_optimiert statt des Downloads-Ordners selbst wählen. Alternativ den blauen Download-Button verwenden.','warn');return}
@@ -781,6 +875,8 @@ document.addEventListener('paste',e=>{if(state.busy||['INPUT','TEXTAREA'].includ
 $('checkAll').addEventListener('change',e=>{if(state.busy)return;for(const item of state.items)item.checked=e.target.checked;updateCheckAll();for(const item of state.items)updateRow(item)});
 $('deleteChecked').addEventListener('click',()=>removeItems(new Set(state.items.filter(x=>x.checked).map(x=>x.id))));
 $('fileRows').addEventListener('change',e=>{if(state.busy||!e.target.matches('input.file-check'))return;const row=e.target.closest('tr');const item=state.items.find(x=>x.id===Number(row?.dataset.id));if(item){item.checked=e.target.checked;updateCheckAll()}});
+$('prevPreview').addEventListener('click',()=>navigatePreview(-1));
+$('nextPreview').addEventListener('click',()=>navigatePreview(1));
 $('fileRows').addEventListener('click',e=>{const btn=e.target.closest('button[data-action]');if(!btn||state.busy)return;const row=btn.closest('tr');const id=Number(row?.dataset.id);if(btn.dataset.action==='delete'){removeItems(new Set([id]))}else{state.selected=id;state.cropDrag=null;renderPreview();$('previewPanel').scrollIntoView({behavior:'smooth',block:'start'})}});
 $('preset').addEventListener('change',()=>{if($('preset').value!=='custom')applyPreset($('preset').value);else updateFormatHint()});
 ['format','resizeMode','maxEdge','quality','targetKB','suffix','bgColor'].forEach(id=>$(id).addEventListener(id==='quality'?'input':'change',onConfigChange));
@@ -803,6 +899,7 @@ function finishCrop(e,cancelled=false){const drag=state.cropDrag;if(!drag||e.poi
 }
 $('originalPreview').addEventListener('pointerup',e=>finishCrop(e));$('originalPreview').addEventListener('pointercancel',e=>finishCrop(e,true));window.addEventListener('resize',()=>drawCropOverlay());
 $('downloadOne').addEventListener('click',()=>{const item=state.items.find(x=>x.id===state.selected);if(item?.result)downloadBlob(item.result,item.outputName)});
+$('savePreparedZip').addEventListener('click',savePreparedZip);
 $('process').addEventListener('click',runProcessing);$('cancel').addEventListener('click',()=>{state.cancel=true;notice('processNotice',state.workingMode==='processing'?'Abbruch angefordert. Das gerade bearbeitete Bild wird noch abgeschlossen.':'Abbruch angefordert. Der aktuelle Speicherschritt wird noch abgeschlossen.','warn')});$('shareIos').addEventListener('click',shareOnIos);$('downloadZip').addEventListener('click',runZip);$('quickDownload').addEventListener('click',()=>{const item=state.items.find(x=>x.result);if(item){downloadBlob(item.result,item.outputName);notice('processNotice','Bild zum normalen Browser-Download übergeben.','good')}});$('saveFolder').addEventListener('click',()=>{$('folderHelp').hidden=!$('folderHelp').hidden;});$('confirmFolder').addEventListener('click',()=>{$('folderHelp').hidden=true;saveToFolder()});$('cancelFolder').addEventListener('click',()=>{$('folderHelp').hidden=true});
 updateResizeUI();updateFormatHint();renderList();renderPreview();updateStats();capabilities().catch(e=>notice('browserNotice','Browserprüfung fehlgeschlagen: '+e.message,'warn'));
 })();
